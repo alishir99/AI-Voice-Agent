@@ -1,0 +1,12 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+agreements*.jsonl
+docs/
+tests/
+README.md
+compose.yaml
+fly.toml
+.env
+.env.example

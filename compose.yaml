@@ -1,0 +1,10 @@
+services:
+  agent:
+    build: .
+    ports: ["8080:8080"]
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - .:/app                      # edit locally, --reload picks it up
+    command: uvicorn app.server:app --host 0.0.0.0 --port 8080 --reload

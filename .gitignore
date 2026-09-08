@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+agreements*.jsonl
+.env
+.venv/
+README.md
+docs/

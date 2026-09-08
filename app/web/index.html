@@ -1,0 +1,471 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meridian Recovery Services</title>
+
+<script>
+  // Before first paint, so a chosen theme never flashes the other one.
+  try {
+    const t = localStorage.getItem("theme");
+    if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  } catch {}
+</script>
+
+<style>
+  /* Apple-ish: system stack (no webfont request), near-monochrome, one accent.
+     Every colour is a token defined on :root first, then re-declared for dark. */
+  :root {
+    --bg: #fff;
+    --surface: #f5f5f7;
+    --raised: #fff;
+    --text: #1d1d1f;
+    --text-2: #6e6e73;
+    --hairline: rgba(0, 0, 0, .10);
+    --accent: #0068d1;        /* focus ring, halo, small accents */
+    --accent-fill: #0068d1;   /* button ground: white label must clear 4.5:1 on it */
+    --on-accent: #fff;
+    --danger: #c9252d;        /* status text */
+    --danger-fill: #c9252d;   /* end-call ground */
+    --shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 10px 30px rgba(0, 0, 0, .06);
+    --warn-bg: #fff8e6; --warn-line: #d99000; --warn-text: #6b4500;
+
+    --step: clamp(2.25rem, 6vw, 3.5rem);
+    --gutter: clamp(1.25rem, 5vw, 2rem);
+    --radius: 18px;
+  }
+  /* System preference, unless the reader has chosen otherwise. Duplicated rather
+     than shared because CSS has no way to apply one token block from two
+     conditions without a build step. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #000;
+      --surface: #1c1c1e;
+      --raised: #2c2c2e;
+      --text: #f5f5f7;
+      --text-2: #98989d;
+      --hairline: rgba(255, 255, 255, .13);
+      --accent: #0a84ff;
+      --accent-fill: #0a72e0;
+      --on-accent: #fff;
+      --danger: #ff453a;
+      --danger-fill: #d93025;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 10px 34px rgba(0, 0, 0, .55);
+      --warn-bg: #2a2000; --warn-line: #f0b429; --warn-text: #f5d99a;
+    }
+  }
+  :root[data-theme="dark"] {
+      --bg: #000;
+      --surface: #1c1c1e;
+      --raised: #2c2c2e;
+      --text: #f5f5f7;
+      --text-2: #98989d;
+      --hairline: rgba(255, 255, 255, .13);
+      --accent: #0a84ff;
+      --accent-fill: #0a72e0;
+      --on-accent: #fff;
+      --danger: #ff453a;
+      --danger-fill: #d93025;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 10px 34px rgba(0, 0, 0, .55);
+      --warn-bg: #2a2000; --warn-line: #f0b429; --warn-text: #f5d99a;
+  }
+
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"]  { color-scheme: dark; }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }   /* beats .icon-btn's display */
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--text);
+    font: 400 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+          system-ui, Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  main { max-width: 40rem; margin: 0 auto; padding: clamp(3rem, 12vh, 7rem) var(--gutter) 4rem; }
+
+  .eyebrow {
+    margin: 0 0 .75rem;
+    font-size: .75rem; font-weight: 590;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--text-2);
+  }
+  h1 { margin: 0 0 1rem; font-size: var(--step); font-weight: 600; letter-spacing: -0.022em; line-height: 1.06; }
+  .lede { margin: 0 0 2.5rem; max-width: 42ch; font-size: 1.1875rem; line-height: 1.5; color: var(--text-2); }
+
+  .call {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    display: grid; gap: 1.25rem;
+  }
+  .account {
+    display: flex; flex-wrap: wrap; gap: .4rem .9rem; align-items: baseline;
+    margin: 0; padding-bottom: 1.25rem; border-bottom: 1px solid var(--hairline);
+  }
+  .account dt { margin: 0; font-size: .8125rem; color: var(--text-2); }
+  .account dd { margin: 0; font-size: .9375rem; font-weight: 500; }
+  .account .balance { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; }
+
+  /* --- the call control ------------------------------------------------- */
+  .controls { display: flex; gap: .75rem; align-items: center; }
+  .btn-wrap { position: relative; flex: 1; display: flex; }
+
+  /* Assistant loudness, as a glow behind the End-call button. Only opacity is
+     driven; scaling a wide pill bulges it sideways into wings, not a halo.
+     The blur is static, so each frame is a compositor-only opacity change. */
+  .pulse {
+    position: absolute; inset: -1px; border-radius: 980px;
+    background: var(--danger-fill); filter: blur(11px);
+    opacity: var(--glow, 0);
+    transition: opacity .12s linear;
+    pointer-events: none;
+  }
+
+  button {
+    font: inherit; font-weight: 590;
+    border-radius: 980px; border: 1px solid transparent;
+    min-height: 50px; cursor: pointer;
+    transition: background-color .2s ease, color .2s ease, opacity .2s ease, transform .1s ease;
+  }
+  button:active:not(:disabled) { transform: scale(.985); }
+  button:disabled { cursor: default; opacity: .55; }
+
+  .primary {
+    position: relative; flex: 1; padding: 0 1.5rem;
+    background: var(--accent-fill); color: var(--on-accent);
+    display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+  }
+  .primary[data-state="live"] { background: var(--danger-fill); }
+  .primary > svg { width: 19px; height: 19px; flex: none; }
+
+  .icon-btn {
+    width: 50px; min-width: 50px; padding: 0;
+    background: var(--raised); color: var(--text); border-color: var(--hairline);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .icon-btn[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: transparent; }
+  .icon-btn svg { width: 20px; height: 20px; }
+
+  .status {
+    margin: 0; min-height: 1.4em;
+    display: flex; align-items: center; gap: .5rem;
+    color: var(--text-2); font-size: .9375rem;
+  }
+  .status .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--danger); flex: none;
+    animation: blink 1.6s ease-in-out infinite;
+  }
+  .status time { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 500; }
+  .status[data-tone="error"] { color: var(--danger); }
+  @keyframes blink { 50% { opacity: .35; } }
+
+  .spinner {
+    width: 17px; height: 17px; flex: none; border-radius: 50%;
+    border: 2px solid currentColor; border-top-color: transparent;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  ul { list-style: none; margin: 3rem 0 0; padding: 0; display: grid; gap: 1.5rem; }
+  li { display: grid; grid-template-columns: 22px 1fr; gap: .9rem; align-items: start; }
+  li > svg { width: 20px; height: 20px; margin-top: 2px; color: var(--text-2); }
+  li b { display: block; font-weight: 590; font-size: .9375rem; }
+  li span { color: var(--text-2); font-size: .9375rem; }
+
+  footer {
+    margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--hairline);
+    color: var(--text-2); font-size: .8125rem; line-height: 1.5;
+  }
+
+  .notice {
+    margin: 0; padding: .9rem 1rem;
+    background: var(--warn-bg); border: 1px solid var(--warn-line);
+    border-radius: 12px; color: var(--warn-text); font-size: .9375rem;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .875em; }
+
+  #theme {
+    position: fixed; top: max(1rem, env(safe-area-inset-top)); right: var(--gutter);
+    width: 40px; height: 40px; min-height: 0; border-radius: 50%;
+    background: var(--surface); color: var(--text); border-color: var(--hairline);
+    display: grid; place-items: center; z-index: 10;
+  }
+  #theme:hover { background: var(--raised); }
+  #theme svg { grid-area: 1 / 1; width: 19px; height: 19px; }
+  /* Show the mode you would switch TO, and rotate the pair as they trade places. */
+  #theme .moon { opacity: 1; transform: none; }
+  #theme .sun  { opacity: 0; transform: rotate(-90deg) scale(.5); }
+  :root[data-theme="dark"] #theme .moon { opacity: 0; transform: rotate(90deg) scale(.5); }
+  :root[data-theme="dark"] #theme .sun  { opacity: 1; transform: none; }
+  #theme svg { transition: opacity .2s ease, transform .35s cubic-bezier(.32, .72, 0, 1); }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 980px; }
+
+  main > * { animation: rise .5s cubic-bezier(.32, .72, 0, 1) backwards; }
+  main > :nth-child(2) { animation-delay: .04s; }
+  main > :nth-child(3) { animation-delay: .08s; }
+  main > :nth-child(4) { animation-delay: .12s; }
+  main > :nth-child(5) { animation-delay: .16s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+  @media (prefers-reduced-motion: reduce) {
+    main > * { animation: none; }
+    .pulse, .status .dot, .spinner { animation: none; transition: none; }
+    .pulse { opacity: 0; }
+    *, *::before, *::after { transition-duration: .01ms !important; }
+  }
+</style>
+
+<button id="theme" class="icon-btn" aria-label="Switch to dark mode" title="Switch to dark mode">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+  </svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+  </svg>
+</button>
+
+<main>
+  <p class="eyebrow">Account review line</p>
+  <h1>Speak with Alex.</h1>
+  <p class="lede">A collections call you can have on your own terms. No hold music, no transfers.</p>
+
+  <div class="call">
+    <dl class="account">
+      <dt>Balance</dt>
+      <dd class="balance">$1,000.00</dd>
+      <dt>Status</dt>
+      <dd>180+ days past due</dd>
+    </dl>
+
+    <div class="controls">
+      <span class="btn-wrap">
+        <span class="pulse" id="pulse" hidden></span>
+        <button class="primary" id="call" data-state="idle" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/>
+            <path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v3"/>
+          </svg>
+          <span id="call-label">Call Alex</span>
+        </button>
+      </span>
+      <button class="icon-btn" id="mute" aria-pressed="false" aria-label="Mute microphone" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/>
+          <path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v3"/><path d="M4 4l16 16"/>
+        </svg>
+      </button>
+    </div>
+
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </div>
+
+  <ul>
+    <li>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"/><path d="m9 12 2 2 4-4"/>
+      </svg>
+      <div>
+        <b>Every figure is issued by a policy service</b>
+        <span>Not by the model. Alex relays approved terms and cannot invent one.</span>
+      </div>
+    </li>
+    <li>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>
+      </svg>
+      <div>
+        <b>Settlements stop at 20% off</b>
+        <span>No payment ever falls below 25% of the agreed total.</span>
+      </div>
+    </li>
+    <li>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>
+      </svg>
+      <div>
+        <b>You can end it at any point</b>
+        <span>Say “stop calling me” or “I dispute this” and the call closes there.</span>
+      </div>
+    </li>
+  </ul>
+
+  <footer>
+    Simulated account for evaluation purposes. No real debt, no real consumer data, and no
+    payment details are collected on this line.
+  </footer>
+</main>
+
+<script>
+  // Theme control. Kept out of the module below so a calling-library failure
+  // there can never leave this button dead.
+  (() => {
+    const root = document.documentElement;
+    const btn = document.getElementById("theme");
+    const system = matchMedia("(prefers-color-scheme: dark)");
+    const stored = () => { try { return localStorage.getItem("theme"); } catch { return null; } };
+
+    // Always stamp the resolved theme, never leave it implicit: the icon swap is
+    // keyed on [data-theme], so following the system silently has to be spelled out.
+    const apply = (t) => {
+      root.dataset.theme = t;
+      const to = t === "dark" ? "light" : "dark";
+      btn.setAttribute("aria-label", `Switch to ${to} mode`);
+      btn.title = `Switch to ${to} mode`;
+    };
+
+    btn.addEventListener("click", () => {
+      const next = root.dataset.theme === "dark" ? "light" : "dark";
+      try { localStorage.setItem("theme", next); } catch {}
+      apply(next);
+    });
+
+    // Follow the OS until the reader overrides it.
+    system.addEventListener("change", () => { if (!stored()) apply(system.matches ? "dark" : "light"); });
+    apply(stored() || (system.matches ? "dark" : "light"));
+  })();
+</script>
+
+<script type="module">
+  // Substituted by app/server.py from the environment. Never hand-edit.
+  const PUBLIC_KEY   = "__VAPI_PUBLIC_KEY__";
+  const ASSISTANT_ID = "__VAPI_ASSISTANT_ID__";
+  const SDK = "https://cdn.jsdelivr.net/npm/@vapi-ai/web@2.7.0/+esm";   // pinned, not @latest
+
+  const btn    = document.getElementById("call");
+  const label  = document.getElementById("call-label");
+  const mute   = document.getElementById("mute");
+  const pulse  = document.getElementById("pulse");
+  const status = document.getElementById("status");
+
+  const say = (html, tone = "") => { status.innerHTML = html; status.dataset.tone = tone; };
+
+  const svg = (paths) => {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    for (const [k, v] of Object.entries({ viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+        "stroke-width": "1.6", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }))
+      el.setAttribute(k, v);
+    el.innerHTML = paths;
+    return el;
+  };
+  const micIcon = () => svg('<path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/>' +
+                            '<path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v3"/>');
+  const endIcon = () => svg('<path d="M3 10a14 14 0 0 1 18 0v3.5l-4.5.7-.8-3a10 10 0 0 0-7.4 0l-.8 3L3 13.5z"/>');
+  const spinner = () => Object.assign(document.createElement("span"), { className: "spinner" });
+
+  function setState(s, text) {
+    btn.dataset.state = s;
+    label.textContent = text;
+    btn.disabled = s === "connecting" || s === "dead";
+    mute.hidden = pulse.hidden = s !== "live";
+    btn.firstElementChild.replaceWith(
+      s === "connecting" ? spinner() : s === "live" ? endIcon() : micIcon());
+  }
+
+  if (!PUBLIC_KEY || !ASSISTANT_ID) {
+    setState("dead", "Call Alex");
+    document.querySelector(".controls").insertAdjacentHTML("beforebegin",
+      '<p class="notice"><strong>Not wired up yet.</strong> Set <code>VAPI_PUBLIC_KEY</code> and ' +
+      '<code>VAPI_ASSISTANT_ID</code> in <code>.env</code>, then restart the server.</p>');
+  } else {
+    const dead = (msg) => {
+      setState("dead", "Unavailable");
+      say(msg, "error");
+      throw new Error(msg);
+    };
+
+    let mod;
+    try { mod = await import(SDK); }
+    catch { dead("Could not load the calling library. Check your connection and reload the page."); }
+
+    // jsDelivr's +esm wraps this CJS package, so the class sits at default.default.
+    // Accept every shape rather than pin to one bundler's interop.
+    const Vapi = mod.default?.default ?? mod.default ?? mod;
+    if (typeof Vapi !== "function") dead("The calling library loaded in an unexpected shape.");
+
+    let vapi;
+    try { vapi = new Vapi(PUBLIC_KEY); }
+    catch { dead("The calling library could not be initialised."); }
+
+    let ticker, startedAt, note = "Connected";
+    const clock = () => {
+      const s = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+      return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    };
+    const live = () => say(`<span class="dot"></span><time>${clock()}</time> ${note}`);
+
+    const idle = () => {
+      clearInterval(ticker);
+      ticker = null;
+      pulse.style.removeProperty("--glow");
+      mute.setAttribute("aria-pressed", "false");
+      mute.setAttribute("aria-label", "Mute microphone");
+      setState("idle", "Call Alex");
+    };
+
+    btn.addEventListener("click", async () => {
+      if (btn.dataset.state === "live") {
+        setState("connecting", "Ending…");
+        try { await vapi.stop(); } catch { idle(); say("Call ended."); }
+        return;
+      }
+      setState("connecting", "Connecting…");
+      say("Requesting microphone access…");
+      try {
+        await vapi.start(ASSISTANT_ID);
+      } catch (e) {
+        idle();
+        const n = e?.name || e?.error?.name;
+        say(n === "NotAllowedError"
+              ? "Microphone access was blocked. Allow it for this site in your browser settings, then try again."
+            : n === "NotFoundError"
+              ? "No microphone was found. Connect one and try again."
+              : "The call could not be started. Please try again.", "error");
+      }
+    });
+
+    mute.addEventListener("click", () => {
+      const next = !vapi.isMuted();
+      vapi.setMuted(next);
+      mute.setAttribute("aria-pressed", String(next));
+      mute.setAttribute("aria-label", next ? "Unmute microphone" : "Mute microphone");
+      note = next ? "Your microphone is muted" : "Connected";
+      live();
+    });
+
+    vapi.on("call-start", () => {
+      startedAt = Date.now();
+      note = "Connected";
+      setState("live", "End call");
+      live();
+      ticker = setInterval(live, 1000);
+    });
+    vapi.on("speech-start", () => { if (!vapi.isMuted()) { note = "Alex is speaking"; live(); } });
+    vapi.on("speech-end",   () => { if (!vapi.isMuted()) { note = "Listening";        live(); } });
+    vapi.on("volume-level", v => pulse.style.setProperty("--glow", Math.min(Math.max(v, 0), 1) * 0.6));
+    vapi.on("call-end", () => { idle(); say("Call ended."); });
+    const failed = (detail) => {
+      idle();
+      say("The call could not be connected. Please try again."
+          + (detail ? ` <span style="opacity:.7">(${detail})</span>` : ""), "error");
+    };
+    vapi.on("call-start-failed", e => failed(e?.error));
+    vapi.on("error", e => failed(e?.errorMsg || e?.error?.message || e?.message));
+
+    addEventListener("pagehide", () => { try { vapi.stop(); } catch {} });
+    idle();
+  }
+</script>

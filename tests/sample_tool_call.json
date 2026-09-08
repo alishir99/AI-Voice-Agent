@@ -1,0 +1,1 @@
+{"message":{"type":"tool-calls","call":{"id":"smoke1"},"toolCallList":[{"id":"tc1","name":"evaluate_offer","arguments":{"amount_per_payment":300,"cadence":"monthly"}}]}}
