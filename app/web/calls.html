@@ -212,8 +212,7 @@
     return out.join("");
   };
 
-  // The whole reason this page exists: what the agent was asked, and what the
-  // validator issued back. Every spoken figure should be traceable to a right column.
+  // The point of the page: what the agent asked, what the validator issued back.
   const trace = c => (c.tools || []).map(t => {
     const o = t.out || {};
     const v = o.verdict || (o.ok === true ? "booked" : o.ok === false ? "refused" : o.error ? "error" : "ok");

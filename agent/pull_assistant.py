@@ -1,16 +1,8 @@
 """Pull the live provider stack from Vapi back into build_assistant.py.
 
-    python -m agent.pull_assistant           # show what differs
-    python -m agent.pull_assistant --write   # write it into build_assistant.py
-    python -m agent.pull_assistant --show    # print what is live right now
+    python -m agent.pull_assistant [--write | --show]
 
-The Composer is fine for trying providers out; it is the wrong place to keep them,
-because publishing drops the x-vapi-secret headers and the next deploy_assistant
-reverts the change anyway. So: experiment in the dashboard, pull, then deploy.
-
-Only MODEL, VOICE and TRANSCRIBER come back. The prompt and the tool definitions stay
-one-way - they are the reviewed artifact, and editing them in a web form is how the
-deployed prompt and the one in git drift apart.
+Only MODEL, VOICE and TRANSCRIBER come back; the prompt and tool definitions stay one-way.
 """
 import json
 import re

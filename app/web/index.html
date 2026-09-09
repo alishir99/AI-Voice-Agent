@@ -12,8 +12,7 @@
 </script>
 
 <style>
-  /* Apple-ish: system stack (no webfont request), near-monochrome, one accent.
-     Every colour is a token defined on :root first, then re-declared for dark. */
+  /* System stack, near-monochrome, one accent. Tokens on :root, re-declared for dark. */
   :root {
     --bg: #fff;
     --surface: #f5f5f7;
@@ -33,9 +32,7 @@
     --gutter: clamp(1.25rem, 5vw, 2rem);
     --radius: 18px;
   }
-  /* System preference, unless the reader has chosen otherwise. Duplicated rather
-     than shared because CSS has no way to apply one token block from two
-     conditions without a build step. */
+  /* Duplicated: CSS cannot apply one token block from two conditions without a build step. */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #000;
@@ -116,9 +113,7 @@
   .controls { display: flex; gap: .75rem; align-items: center; }
   .btn-wrap { position: relative; flex: 1; display: flex; }
 
-  /* Assistant loudness, as a glow behind the End-call button. Only opacity is
-     driven; scaling a wide pill bulges it sideways into wings, not a halo.
-     The blur is static, so each frame is a compositor-only opacity change. */
+  /* Assistant loudness. Opacity only: scaling a wide pill makes wings, not a halo. */
   .pulse {
     position: absolute; inset: -1px; border-radius: 980px;
     background: var(--danger-fill); filter: blur(11px);
@@ -310,16 +305,14 @@
 </main>
 
 <script>
-  // Theme control. Kept out of the module below so a calling-library failure
-  // there can never leave this button dead.
+  // Outside the module below, so a calling-library failure cannot kill this button.
   (() => {
     const root = document.documentElement;
     const btn = document.getElementById("theme");
     const system = matchMedia("(prefers-color-scheme: dark)");
     const stored = () => { try { return localStorage.getItem("theme"); } catch { return null; } };
 
-    // Always stamp the resolved theme, never leave it implicit: the icon swap is
-    // keyed on [data-theme], so following the system silently has to be spelled out.
+    // Stamp the resolved theme: the icon swap is keyed on [data-theme].
     const apply = (t) => {
       root.dataset.theme = t;
       const to = t === "dark" ? "light" : "dark";
@@ -391,8 +384,7 @@
     try { mod = await import(SDK); }
     catch { dead("Could not load the calling library. Check your connection and reload the page."); }
 
-    // jsDelivr's +esm wraps this CJS package, so the class sits at default.default.
-    // Accept every shape rather than pin to one bundler's interop.
+    // jsDelivr's +esm wraps this CJS package; accept every interop shape.
     const Vapi = mod.default?.default ?? mod.default ?? mod;
     if (typeof Vapi !== "function") dead("The calling library loaded in an unexpected shape.");
 

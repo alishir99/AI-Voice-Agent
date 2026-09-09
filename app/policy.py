@@ -151,9 +151,7 @@ def evaluate(state, offer):
         return accept()
 
     state["rung"] = chosen                                    # ratchet: never climbs back
-    # The standing offer, so that saying yes to our own counter can be booked. Without
-    # this, only a consumer-proposed offer we accepted was bookable, and the ordinary
-    # close - they agree to what we just read out - had no path through the second gate.
+    # The standing offer, so agreeing to our own counter is bookable.
     state["offered"] = {"total": counter["total"], "schedule": counter["schedule"]}
     return {"verdict": "counter", "terms": counter, "final": chosen == LAST_RUNG,
             "say": phrase(counter)}
@@ -163,9 +161,8 @@ def book(state, terms):
     """Second gate. An out-of-policy deal cannot be logged even if the model invents one."""
     total, sched = _num(terms.get("total")), terms.get("schedule") or []
     sched = [{"day": int(_num(p.get("day"))), "amount": _num(p.get("amount"))} for p in sched]
-    # Bookable iff the validator itself issued these terms on this call: either an offer
-    # we accepted, or the counter currently on the table. An invented figure matches
-    # neither, which is the point of this gate.
+    # Bookable iff the validator issued these terms on this call. An invented
+    # figure matches neither, which is the point of this gate.
     issued = [t for t in (state.get("accepted"), state.get("offered")) if t]
     if not any(abs(t["total"] - total) <= 0.02 for t in issued):
         return {"ok": False, "reason": "no matching offer issued on this call"}

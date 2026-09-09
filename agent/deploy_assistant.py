@@ -2,9 +2,7 @@
 
     python -m agent.deploy_assistant
 
-Reads .env for PUBLIC_HOST, VAPI_API_KEY, VAPI_SECRET, VAPI_ASSISTANT_ID.
-The webhook secret is injected here rather than into assistant.json, because that
-file is tracked and a secret in it would be committed.
+Injects x-vapi-secret here rather than into the tracked assistant.json.
 """
 import json
 import os

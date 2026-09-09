@@ -60,9 +60,8 @@ async def tool(req: Request):
     state = CALLS.setdefault(call_id, {})
     results = []
     for tc in msg.get("toolCallList", []):
-        # Vapi sends either {"name", "arguments"} or the OpenAI-shaped
-        # {"function": {"name", "arguments"}}. Reading only the flat one leaves the
-        # name empty, and every tool call becomes "unknown tool" mid-conversation.
+        # Vapi sends {"name", "arguments"} or {"function": {"name", "arguments"}}.
+        # Reading only the flat one leaves the name empty on every real call.
         fn = tc.get("function") or {}
         name = fn.get("name") or tc.get("name") or ""
         args = fn.get("arguments") if fn.get("arguments") is not None else tc.get("arguments")
