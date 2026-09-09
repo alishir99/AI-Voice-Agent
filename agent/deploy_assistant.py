@@ -43,8 +43,10 @@ def main():
         f"https://api.vapi.ai/assistant/{aid}" if aid else "https://api.vapi.ai/assistant",
         data=json.dumps(body).encode(),
         method="PATCH" if aid else "POST",
+        # Cloudflare fronts api.vapi.ai and 1010s the default Python-urllib UA.
         headers={"Authorization": f"Bearer {os.environ['VAPI_API_KEY']}",
-                 "Content-Type": "application/json"},
+                 "Content-Type": "application/json",
+                 "User-Agent": "curl/8.5.0"},
     )
     try:
         out = json.load(urllib.request.urlopen(req))
