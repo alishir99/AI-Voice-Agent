@@ -28,8 +28,11 @@ def main():
     load_env()
     from . import build_assistant          # imported late: HOST is read at import time
 
-    if "YOUR-APP" in build_assistant.HOST:
-        raise SystemExit("set PUBLIC_HOST in .env first, e.g. https://xxx.trycloudflare.com")
+    host = build_assistant.HOST
+    if "YOUR-APP" in host or not host.startswith("https://") or len(host) < len("https://a.io"):
+        raise SystemExit(
+            f"PUBLIC_HOST is {host!r}. Vapi needs an https:// webhook URL, so set it in .env:\n"
+            "  sed -i 's|^PUBLIC_HOST=.*|PUBLIC_HOST=https://your-host|' .env")
 
     body = build_assistant.build()
     if secret := os.getenv("VAPI_SECRET"):
