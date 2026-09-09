@@ -33,7 +33,7 @@ HOST = os.getenv("PUBLIC_HOST", "https://YOUR-APP.fly.dev").rstrip("/")
 # Google closed the 2.5 family to new API keys, so anything 2.5 returns 404 on a
 # fresh account no matter what the docs say. 3.5 Flash is the current default.
 # Flash-Lite is faster but weakest at tool calling, the one thing that must not fail.
-MODEL = {"provider": "google", "model": "gemini-3.5-flash", "temperature": 0.3}
+MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
 # MODEL = {"provider": "google", "model": "gemini-3.1-flash-lite", "temperature": 0.3}
 # Fallback with the strongest tool-calling record, billed through Vapi:
 # MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
@@ -123,9 +123,13 @@ def build():
         "voice": VOICE,
         "transcriber": TRANSCRIBER,
         "startSpeakingPlan": {
-            "waitSeconds": 0.3,
+            "waitSeconds": 0.4,
+            # x is the probability the caller is STILL speaking (0 = stopped, 1 = mid-sentence),
+            # and the result is how long to wait. The old sigmoid topped out at 695ms, so Alex
+            # talked over anyone who paused for breath. 200ms when they are clearly done,
+            # 4.2s of patience when they are clearly not. Vapi's own default is 200 + 8000 * x.
             "smartEndpointingPlan": {"provider": "livekit",
-                                     "waitFunction": "700 / (1 + exp(-10 * (x - 0.5)))"},
+                                     "waitFunction": "200 + 4000 * x"},
         },
         "stopSpeakingPlan": {"numWords": 2, "voiceSeconds": 0.2, "backoffSeconds": 1.0},
         "server": {"url": f"{HOST}/vapi/events"},
