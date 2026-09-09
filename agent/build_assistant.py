@@ -107,11 +107,11 @@ TOOLS = [
 
 def build():
     return {
-        "name": "Meridian Recovery - Alex",
+        "name": "Corafone - Alex",
         # The mini-Miranda lives here, not in the prompt, so it is spoken verbatim
         # on every call and the model cannot paraphrase it away.
         "firstMessage": (
-            "Hi, this is Alex with Meridian Recovery Services. This is an attempt to collect a debt, "
+            "Hi, this is Alex with Corafone. This is an attempt to collect a debt, "
             "and any information obtained will be used for that purpose. Am I speaking with the account holder?"
         ),
         "firstMessageMode": "assistant-speaks-first",
