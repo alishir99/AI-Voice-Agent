@@ -132,7 +132,7 @@ def build():
         "serverMessages": ["end-of-call-report"],
         "endCallFunctionEnabled": True,
         "silenceTimeoutSeconds": 20,
-        "maxDurationSeconds": 900,
+        "maxDurationSeconds": 420,
         "backgroundSound": "office",
     }
 
