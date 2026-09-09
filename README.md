@@ -4,7 +4,7 @@ Negotiates a $1,000 delinquent account. **Every number it speaks comes from a po
 outside the model.** The agent cannot invent a discount and cannot log a deal the validator
 did not approve.
 
-- **Talk to it:** https://still-container-textbooks-predictions.trycloudflare.com
+- **Talk to it:** https://fed-tmp-improvement-defined.trycloudflare.com/
 - **Recording:** _<link>_
 
 ---
