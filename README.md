@@ -93,6 +93,7 @@ app/web/index.html         call page, Vapi Web SDK
 agent/prompt.md            system prompt (source of truth)
 agent/build_assistant.py   prompt.md + tool defs -> assistant.json
 agent/deploy_assistant.py  push to Vapi: POST first time, PATCH after
+agent/pull_assistant.py    pull the live provider stack back into build_assistant.py
 agent/audit.py             fails if the agent ever spoke an unissued figure
 agent/place_call.py        outbound test call
 tests/                     python -m tests.test_policy && python -m tests.test_server
@@ -137,6 +138,18 @@ python -m agent.deploy_assistant     # prints the assistant id; put it in .env
 
 Re-run `deploy_assistant` after any prompt, tool or model change. It PATCHes once
 `VAPI_ASSISTANT_ID` is set. `fly.toml` is included if you'd rather use Fly.
+
+**Providers live in code, not the dashboard.** Publishing from the Vapi Composer drops the
+`x-vapi-secret` headers, so the webhooks start silently rejecting, and the next deploy reverts
+your change anyway. Try providers out in the dashboard if you like, then bring them back:
+
+```bash
+python -m agent.pull_assistant           # show what differs
+python -m agent.pull_assistant --write   # write MODEL/VOICE/TRANSCRIBER into build_assistant.py
+python -m agent.deploy_assistant         # push it back, headers included
+```
+
+The prompt and tool definitions are deliberately one-way. They are the reviewed artifact.
 
 ### .env
 
