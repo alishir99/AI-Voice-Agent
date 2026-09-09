@@ -3,5 +3,4 @@ __pycache__/
 agreements*.jsonl
 .env
 .venv/
-README.md
 docs/
