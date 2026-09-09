@@ -75,7 +75,7 @@ Three sub-floor offers in a row triggers `hardship`: note it, end politely. No l
 ## Layout
 
 ```
-caller --web/phone--> Vapi (Deepgram, LLM, Cartesia, LiveKit turn-taking)
+caller --web/phone--> Vapi (Soniox, LLM, Vapi voice, LiveKit turn-taking)
                         |  tool call
                         v
                  FastAPI  +-- app/policy.py       pure, no I/O, stdlib only
@@ -153,7 +153,7 @@ The page substitutes these at request time, so no key is committed.
 
 ### Model
 
-`MODEL` at the top of `agent/build_assistant.py`. Vapi supplies OpenAI, Deepgram and Cartesia
+`MODEL`, `VOICE` and `TRANSCRIBER` at the top of `agent/build_assistant.py`. Vapi supplies all three
 and bills them per minute, so no accounts are needed. Add your own key under Dashboard,
 Integrations, and that provider bills you directly instead.
 

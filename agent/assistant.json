@@ -4,8 +4,8 @@
   "firstMessageMode": "assistant-speaks-first",
   "model": {
     "provider": "openai",
-    "model": "gpt-4.1",
-    "temperature": 0.3,
+    "model": "gpt-5-mini",
+    "reasoningEffort": "minimal",
     "messages": [
       {
         "role": "system",
@@ -145,15 +145,17 @@
     ]
   },
   "voice": {
-    "provider": "cartesia",
-    "model": "sonic-3.5",
-    "voiceId": "a0e99841-438c-4a64-b679-ae501e7d6091"
+    "provider": "vapi",
+    "voiceId": "Elliot",
+    "version": "2"
   },
   "transcriber": {
-    "provider": "deepgram",
-    "model": "nova-3",
+    "provider": "soniox",
+    "model": "stt-rt-v5",
     "language": "en",
-    "endpointing": 180
+    "languages": [
+      "en"
+    ]
   },
   "startSpeakingPlan": {
     "waitSeconds": 0.4,

@@ -30,16 +30,17 @@ HOST = os.getenv("PUBLIC_HOST", "https://YOUR-APP.fly.dev").rstrip("/")
 # After changing MODEL: rebuild, PATCH the assistant, make a few calls, then run
 #   python -m agent.audit
 # which fails if the agent ever spoke a number the validator did not issue.
-# Google closed the 2.5 family to new API keys, so anything 2.5 returns 404 on a
-# fresh account no matter what the docs say. 3.5 Flash is the current default.
-# Flash-Lite is faster but weakest at tool calling, the one thing that must not fail.
-MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
-# MODEL = {"provider": "google", "model": "gemini-3.1-flash-lite", "temperature": 0.3}
-# Fallback with the strongest tool-calling record, billed through Vapi:
+# The stack is chosen for cost here; the constraint is tool-calling reliability, not
+# intelligence. If audit.py ever reports a spoken figure with no tool call behind it,
+# move up, do not tune the prompt.
+MODEL = {"provider": "openai", "model": "gpt-5-mini", "reasoningEffort": "minimal"}
+# gpt-5-mini takes reasoningEffort, not temperature; Vapi drops temperature if you send it.
+# Fallbacks, strongest tool-calling record first:
 # MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
+# MODEL = {"provider": "google", "model": "gemini-3.5-flash", "temperature": 0.3}   # needs your own key
 
-VOICE = {"provider": "cartesia", "model": "sonic-3.5", "voiceId": "a0e99841-438c-4a64-b679-ae501e7d6091"}
-TRANSCRIBER = {"provider": "deepgram", "model": "nova-3", "language": "en", "endpointing": 180}
+VOICE = {"provider": "vapi", "voiceId": "Elliot", "version": "2"}
+TRANSCRIBER = {"provider": "soniox", "model": "stt-rt-v5", "language": "en", "languages": ["en"]}
 
 
 def tool(name, description, properties, required, filler):
