@@ -144,9 +144,8 @@ Re-run `deploy_assistant` after any prompt, tool or model change. It PATCHes onc
 your change anyway. Try providers out in the dashboard if you like, then bring them back:
 
 ```bash
-python -m agent.pull_assistant           # show what differs
-python -m agent.pull_assistant --write   # write MODEL/VOICE/TRANSCRIBER into build_assistant.py
-python -m agent.deploy_assistant         # push it back, headers included
+./sync.sh            # code -> Vapi, after editing build_assistant.py or prompt.md
+./sync.sh --pull     # Vapi -> code -> Vapi, after publishing from the Composer
 ```
 
 The prompt and tool definitions are deliberately one-way. They are the reviewed artifact.
