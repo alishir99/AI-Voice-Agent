@@ -38,7 +38,7 @@ MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
 # Fallback with the strongest tool-calling record, billed through Vapi:
 # MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
 
-VOICE = {"provider": "cartesia", "voiceId": "a0e99841-438c-4a64-b679-ae501e7d6091"}
+VOICE = {"provider": "cartesia", "model": "sonic-3.5", "voiceId": "a0e99841-438c-4a64-b679-ae501e7d6091"}
 TRANSCRIBER = {"provider": "deepgram", "model": "nova-3", "language": "en", "endpointing": 180}
 
 
