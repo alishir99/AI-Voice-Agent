@@ -60,17 +60,23 @@ async def tool(req: Request):
     state = CALLS.setdefault(call_id, {})
     results = []
     for tc in msg.get("toolCallList", []):
-        args = tc.get("arguments") or {}
+        # Vapi sends either {"name", "arguments"} or the OpenAI-shaped
+        # {"function": {"name", "arguments"}}. Reading only the flat one leaves the
+        # name empty, and every tool call becomes "unknown tool" mid-conversation.
+        fn = tc.get("function") or {}
+        name = fn.get("name") or tc.get("name") or ""
+        args = fn.get("arguments") if fn.get("arguments") is not None else tc.get("arguments")
+        args = args or {}
         if isinstance(args, str):
             try:
                 args = json.loads(args)
             except ValueError:
                 args = {}
         try:
-            out = handle(tc.get("name", ""), args, state)
+            out = handle(name, args, state)
         except Exception as e:                                   # dead air is worse than a bad answer
             out = {"error": "validator unavailable", "detail": str(e)}
-        write("tool", call=call_id, tool=tc.get("name"), args=args, out=out)
+        write("tool", call=call_id, tool=name, args=args, out=out)
         results.append({"toolCallId": tc.get("id"), "result": json.dumps(out)})
     return {"results": results}
 

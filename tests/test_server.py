@@ -68,4 +68,13 @@ _r = c.get(f"/calls?k={server.SECRET}") if server.SECRET else None
 if _r is not None:
     assert _r.status_code == 200 and "__DATA__" not in _r.text
 
+# --- both Vapi tool-call shapes reach the validator ----------------------------
+# The flat shape passed while every live call failed, because Vapi sends the nested one.
+for _shape in ("sample_tool_call.json", "sample_tool_call_nested.json"):
+    _body = json.loads((pathlib.Path(__file__).with_name(_shape)).read_text(encoding="utf-8"))
+    _out = json.loads(c.post("/vapi/tool", json=_body).json()["results"][0]["result"])
+    assert _out.get("verdict") == "counter", (_shape, _out)
+    assert _out["terms"]["total"] == 900.0, (_shape, _out)
+server.LOG.unlink(missing_ok=True)
+
 print("all server tests pass")
