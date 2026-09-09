@@ -4,3 +4,5 @@ agreements*.jsonl
 .env
 .venv/
 docs/
+.agents/
+skills-lock.json
