@@ -1,4 +1,4 @@
-name: voice-agent   # namespaces containers/networks, no collision with his stacks
+name: voice-agent   # namespaces containers/networks, no collision with other stacks
 # NAS deploy: app + Cloudflare tunnel. No ports published, no router changes.
 #   touch agreements.jsonl && docker compose -f compose.nas.yaml up -d --build
 services:
@@ -12,5 +12,12 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    # Quick tunnel by default: no account, no token, no domain. The hostname is random
+    # AND CHANGES ON EVERY RESTART, so PUBLIC_HOST in .env goes stale and the assistant's
+    # webhooks point at a dead host. Fine for testing, wrong for anything anyone else uses.
+    #
+    # With a domain on your Cloudflare account, put the tunnel token in .env and use the
+    # named tunnel instead - the hostname is then yours and survives restarts:
+    #   command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate --url http://agent:8080
     depends_on: [agent]
