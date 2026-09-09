@@ -94,4 +94,19 @@ assert not legal(1000, [{"day": i * 30, "amount": 250} for i in range(4)][:3] + 
 assert not legal(800, [{"day": 0, "amount": 200}] * 4)                         # settlement, 4 payments
 assert legal(1000, [{"day": i * 14, "amount": 250} for i in range(4)])         # biweekly plan, ok
 
+# --- saying yes to our own counter is bookable; an invented figure is not ------
+st = {}
+r = evaluate(st, offer(amount_per_payment=400, num_payments=1, cadence="once"))
+assert r["verdict"] == "counter", r
+terms = r["terms"]
+ok = book(st, {"total": terms["total"], "schedule": terms["schedule"]})
+assert ok["ok"], ok
+assert book(st, {"total": 400, "schedule": [{"day": 0, "amount": 400}]})["ok"] is False
+# the standing counter moves with the ladder, so a stale rung cannot be booked later
+st2 = {}
+first = evaluate(st2, offer(amount_per_payment=400, num_payments=1, cadence="once"))["terms"]
+evaluate(st2, offer(amount_per_payment=400, num_payments=1, cadence="once"))
+stale = book(st2, {"total": first["total"], "schedule": first["schedule"]})
+assert stale["ok"] is False or first["total"] == st2["offered"]["total"], stale
+
 print("all policy tests pass")

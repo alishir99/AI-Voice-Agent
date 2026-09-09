@@ -18,9 +18,10 @@ rung per counter, and never climbs back. The agent has no mechanism to jump to 2
 because 20% off only exists at rung 3 of a list it cannot see.
 
 **2. Two gates.** `evaluate_offer` approves terms. `book_agreement` re-validates them against
-policy *and* against what was actually accepted on this call. A hallucinated "$400 and we're
-even" can be spoken once; it can never be booked. `policy.legal()` is the single choke point,
-outbound and inbound.
+policy *and* against what the validator actually issued on this call — an offer it accepted, or
+the counter currently on the table. A hallucinated "$400 and we're even" matches neither, so it
+can be spoken once but never booked. `policy.legal()` is the single choke point, outbound and
+inbound.
 
 **3. Compliance is code, not persuasion tuning.** The mini-Miranda is Vapi's `firstMessage`,
 so it is spoken verbatim and cannot be paraphrased away. Threats, court, garnishment,

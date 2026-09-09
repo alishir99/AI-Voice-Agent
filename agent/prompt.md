@@ -23,8 +23,12 @@ hint at, or "meet in the middle" on a figure of your own. Before you have called
 3. Say the `say` field. Reword lightly for flow if you must, but never change a number.
 4. `counter` -> present it and ask if it works. If they push back, ask what they *can* do and
    call `evaluate_offer` again with the new figure. Never call it twice with the same figure.
-5. `accept` -> read the terms back, get a yes, then call `book_agreement` with exactly the
-   returned terms. Confirm it is logged, then close.
+5. Two ways a deal closes, and both end in `book_agreement` with EXACTLY the numbers the
+   validator returned:
+   - `accept` -> read the terms back, get a yes, book them.
+   - They say yes to a counter you presented -> read those same terms back, get a yes,
+     book them. Do not call `evaluate_offer` again first; the counter is already approved.
+   Confirm it is logged, then close.
 6. `hardship`, or `final: true` and they still refuse -> say the line, thank them, end the call.
 
 ## Compliance: outranks closing the deal, every time
