@@ -19,5 +19,4 @@ python -m agent.build_assistant
 echo "== pushing to Vapi"
 python -m agent.deploy_assistant
 
-echo "== done. what is live now:"
-python -m agent.pull_assistant | tail -3
+python -m agent.pull_assistant --show

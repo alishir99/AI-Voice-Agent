@@ -2,6 +2,7 @@
 
     python -m agent.pull_assistant           # show what differs
     python -m agent.pull_assistant --write   # write it into build_assistant.py
+    python -m agent.pull_assistant --show    # print what is live right now
 
 The Composer is fine for trying providers out; it is the wrong place to keep them,
 because publishing drops the x-vapi-secret headers and the next deploy_assistant
@@ -45,12 +46,37 @@ def fetch(env):
         raise SystemExit(f"vapi {e.code}: {e.read().decode()[:400]}")
 
 
+def show(live, env):
+    """What is actually answering calls right now. Printed after a sync so a wrong
+    model is visible immediately rather than on the next call."""
+    m = live.get("model") or {}
+    v = live.get("voice") or {}
+    t = live.get("transcriber") or {}
+    extra = m.get("reasoningEffort") or m.get("temperature")
+    hdr = (live.get("server") or {}).get("headers") or {}
+    tools = live.get("model", {}).get("tools") or []
+    url = (live.get("server") or {}).get("url", "?")
+
+    print("\nlive at Vapi:")
+    print(f"  model        {m.get('provider','?')} / {m.get('model','?')}"
+          + (f"  ({extra})" if extra else ""))
+    print(f"  voice        {v.get('provider','?')} / {v.get('voiceId','?')}")
+    print(f"  transcriber  {t.get('provider','?')} / {t.get('model','?')}")
+    print(f"  tools        {len(tools)}: {', '.join(x['function']['name'] for x in tools) or 'NONE'}")
+    print(f"  webhook      {url}")
+    if env.get("VAPI_SECRET"):
+        print(f"  secret       {'set' if hdr.get('x-vapi-secret') else 'MISSING - webhooks are being rejected'}")
+
+
 def main():
     env = load_env()
     if not env.get("VAPI_ASSISTANT_ID") or not env.get("VAPI_API_KEY"):
         raise SystemExit("VAPI_ASSISTANT_ID and VAPI_API_KEY must be set in .env")
 
     live = fetch(env)
+    if "--show" in sys.argv:
+        show(live, env)
+        return
     src = SRC.read_text(encoding="utf-8")
     changed = []
 
