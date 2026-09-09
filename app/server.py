@@ -77,6 +77,8 @@ async def tool(req: Request):
 
 @app.post("/vapi/events")
 async def events(req: Request):
+    if SECRET and req.headers.get("x-vapi-secret") != SECRET:
+        return JSONResponse({"ok": True})                        # always 200 for Vapi
     msg = (await req.json()).get("message", {})
     if msg.get("type") != "end-of-call-report":
         return {"ok": True}

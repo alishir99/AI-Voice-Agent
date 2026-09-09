@@ -7,13 +7,15 @@ deployed prompt and the reviewed one drift apart.
     python -m agent.build_assistant --check    # fail if the JSON is stale (CI)
 """
 import json
+import os
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "assistant.json"
 
-HOST = "https://YOUR-APP.fly.dev"
+# Where Vapi sends tool calls. Quick-tunnel URLs rotate on restart, so keep it in .env.
+HOST = os.getenv("PUBLIC_HOST", "https://YOUR-APP.fly.dev").rstrip("/")
 
 # --- Providers ---------------------------------------------------------------
 # Add your own key for any of these under Vapi dashboard > Integrations. Once it

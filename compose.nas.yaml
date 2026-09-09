@@ -1,0 +1,16 @@
+name: voice-agent   # namespaces containers/networks, no collision with his stacks
+# NAS deploy: app + Cloudflare tunnel. No ports published, no router changes.
+#   touch agreements.jsonl && docker compose -f compose.nas.yaml up -d --build
+services:
+  agent:
+    build: .
+    restart: unless-stopped
+    env_file: [.env]
+    volumes:
+      - ./agreements.jsonl:/app/agreements.jsonl   # survives rebuilds
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    depends_on: [agent]
