@@ -80,20 +80,51 @@ Three sub-floor offers in a row triggers `hardship`: note it, end politely. No l
 
 ## Layout
 
+```mermaid
+flowchart LR
+  caller(["Caller"])
+
+  subgraph vapi["Vapi — speech + model"]
+    direction TB
+    stt["Soniox STT"] --> llm["LLM<br/><i>extracts an offer,<br/>relays a string</i>"] --> tts["Voice"]
+  end
+
+  subgraph nas["Your server — FastAPI in Docker, reached by Cloudflare tunnel"]
+    direction TB
+    tool["POST /vapi/tool"]
+    policy["<b>policy.py</b><br/>ladder · legal() · ratchet"]
+    events["POST /vapi/events"]
+    log[("agreements.jsonl")]
+    page["GET / — call page<br/>+ ?k= review"]
+  end
+
+  caller <-->|audio| vapi
+  llm -->|"1· evaluate_offer<br/>2· book_agreement"| tool
+  tool --> policy
+  policy -->|"only approved terms"| tool
+  tool -->|"the exact string to speak"| llm
+  vapi -->|end-of-call report| events
+  events --> log
+  tool --> log
+  log --> page
+  page -.-> caller
+
+  style policy fill:#0068d1,color:#fff
 ```
-caller --web/phone--> Vapi (Soniox, LLM, Vapi voice, LiveKit turn-taking)
-                        |  tool call
-                        v
-                 FastAPI  +-- app/policy.py       pure, no I/O, stdlib only
-                          +-- CALLS               per-call rung, in-process
-                          +-- agreements.jsonl
-                 GET /    serves app/web/index.html, the web link itself
-```
+
+**The one property this diagram exists to show:** no dollar figure originates inside the Vapi
+box. The model extracts what the caller offered and speaks back a string the validator
+returned. `policy.py` is pure — no I/O, no model, no network — so the negotiation is
+reproducible and testable without a voice stack.
+
+Two gates, both through `policy.legal()`: `evaluate_offer` approves terms on the way out,
+`book_agreement` re-checks them on the way back in against what was actually issued on that
+call. A hallucinated figure can be spoken once; it can never be logged.
 
 One deploy serves both the page and the webhook. `/` is the call page; add
 `?k=<VAPI_SECRET>` and a Call/Review toggle appears - the review tab lists every call, the
-offers the agent made, the verdict the validator returned for each, and the transcript - every offer the agent made, the
-verdict the validator returned, and the transcript. Without the key that section does not
+offers the agent made, the verdict the validator returned for each, and the transcript.
+Without the key that section does not
 render at all, because transcripts are conversation content and the URL is public.
 
 ```
