@@ -145,6 +145,16 @@ echo "PUBLIC_HOST=https://your-url" >> .env
 waits for `y`). Commit them or the next `git pull` reverts them. Prompt, tools and webhook
 URLs stay one-way.
 
+**The browser hostname.** Corporate DNS filters block the whole `trycloudflare.com` suffix, so
+reviewers got NXDOMAIN while the server was healthy. `cf/` is a Cloudflare Worker that proxies
+to the tunnel: the browser only ever talks to `*.workers.dev`, and Cloudflare's edge, which is
+not behind that filter, does the talking to the origin. Vapi's webhooks still go straight to
+the tunnel.
+
+```bash
+cd cf && npx wrangler deploy      # set ORIGIN in the dashboard when the tunnel rotates
+```
+
 | key | from | secret |
 |---|---|---|
 | `VAPI_PUBLIC_KEY` | Vapi, API Keys, public | no, ships in the browser |

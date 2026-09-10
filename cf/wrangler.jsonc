@@ -1,0 +1,12 @@
+{
+  // Deploy:  cd cf && npx wrangler deploy
+  //
+  // Then set ORIGIN in the dashboard (Workers > this worker > Settings >
+  // Variables) to whatever the tunnel URL currently is. Changing it there
+  // takes effect immediately and needs no redeploy, which matters because a
+  // quick tunnel gets a new hostname every restart.
+  "name": "corafone-agent",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"]
+}
