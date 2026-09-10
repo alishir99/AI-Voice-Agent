@@ -90,15 +90,9 @@
   main { max-width: 40rem; margin: 0 auto; padding: clamp(3rem, 12vh, 7rem) var(--gutter) 2rem; }
   .pane { min-width: 0; }
 
-  /* Only go wide where the second column actually exists; stacked stays centred. */
-  @media (min-width: 64rem) {
-    body.with-review main {
-      max-width: 78rem; display: grid; align-items: start;
-      grid-template-columns: minmax(0, 27rem) minmax(0, 1fr);
-      gap: clamp(2.5rem, 5vw, 5rem);
-    }
-    body.with-review #review { margin-top: 0; }
-  }
+  /* Two views, one page. The review gets the wider column - a trace of offers
+     needs the room; the call column stays narrow for line length. */
+  body[data-view="review"] main { max-width: 64rem; }
 
   footer {
     position: relative; max-width: 40rem; margin: 0 auto;
@@ -110,7 +104,7 @@
     content: ""; position: absolute; top: 0; left: var(--gutter); right: var(--gutter);
     border-top: 1px solid var(--hairline);
   }
-  @media (min-width: 64rem) { body.with-review footer { max-width: 78rem; } }
+  body[data-view="review"] footer { max-width: 64rem; }
 
   .eyebrow {
     margin: 0 0 .75rem;
@@ -342,13 +336,10 @@
     background: transparent; color: var(--text-2); font-weight: 590; font-size: .9375rem;
   }
   .segmented button[aria-pressed="true"] { background: var(--raised); color: var(--text); box-shadow: var(--shadow); }
-  @media (min-width: 64rem) { .segmented { display: none; } }
-  @media (max-width: 63.99rem) {
-    body.with-review[data-view="call"] #review { display: none; }
-    body.with-review[data-view="review"] .pane > :not(.segmented) { display: none; }
-    body.with-review[data-view="review"] #review { margin-top: 0; }
-    body.with-review[data-view="review"] #review > h2 { display: none; }
-  }
+  body[data-view="call"] #review { display: none; }
+  body[data-view="review"] .pane > :not(.segmented) { display: none; }
+  body[data-view="review"] #review { margin-top: 0; }
+  body[data-view="review"] #review > h2 { display: none; }
 </style>
 
 <button id="theme" class="icon-btn" aria-label="Switch to dark mode" title="Switch to dark mode">

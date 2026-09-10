@@ -86,8 +86,8 @@ caller --web/phone--> Vapi (Soniox, LLM, Vapi voice, LiveKit turn-taking)
 ```
 
 One deploy serves both the page and the webhook. `/` is the call page; add
-`?k=<VAPI_SECRET>` and a call review appears alongside it - side by side on a wide screen,
-behind a Call/Review toggle on a narrow one - every offer the agent made, the
+`?k=<VAPI_SECRET>` and a Call/Review toggle appears - the review tab lists every call, the
+offers the agent made, the verdict the validator returned for each, and the transcript - every offer the agent made, the
 verdict the validator returned, and the transcript. Without the key that section does not
 render at all, because transcripts are conversation content and the URL is public.
 
