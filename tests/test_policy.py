@@ -130,4 +130,20 @@ for _ in range(9):
         break
 assert last["verdict"] == "hardship" and BYE in last["say"], last
 
+# --- a concrete offer is an anchor, not a demonstrated ceiling ------------------
+# Naming the floor outright must not hand over the whole discount on turn one.
+for amount in (800, 850, 900):
+    st = {}
+    r = evaluate(st, offer(amount_per_payment=amount, num_payments=1, cadence="once"))
+    assert r["verdict"] == "counter", (amount, r)
+    assert st["rung"] == 1, (amount, st)
+# but an inferred capacity still skips the rungs they cannot reach
+st = {}
+r = evaluate(st, offer(amount_per_payment=300, cadence="monthly"))
+assert r["verdict"] == "counter" and r["terms"]["total"] == 900.0, r
+# and full payment in any legal shape is still taken at once
+for o in (offer(amount_per_payment=1000, num_payments=1, cadence="once"),
+          offer(amount_per_payment=500, num_payments=2, cadence="biweekly")):
+    assert evaluate({}, o)["verdict"] == "accept", o
+
 print("all policy tests pass")

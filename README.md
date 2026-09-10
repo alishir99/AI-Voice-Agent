@@ -54,7 +54,9 @@ account closes; a plan has three chances to break.
 
 - **Ratchet.** One rung per counter, monotone, server-side.
 - **Capacity-aware descent.** "$300 a month" gets the $900 settlement, not a pointless $1,000
-  counter. A lowball below the floor advances one rung and surrenders no discount.
+  counter. Rungs are only skipped when capacity is *inferred* from an open-ended offer: a
+  concrete figure is an anchor, not a demonstrated ceiling, so naming $800 outright still
+  walks the whole ladder.
 - **Lexicographic acceptance.** Accept if legal and `(total, -payments, -horizon)` beats our
   standing counter, so "$1,000 in two payments" is not rejected for being the wrong shape.
 
@@ -177,6 +179,4 @@ passes.
 - The compliance sweep is a regex: catches phrasing, not meaning.
 - The ladder resets per call, so hanging up and calling back starts at full balance. No
   callback scheduling; retries would have to respect Reg F's 7-in-7 rule.
-- Offering the floor as a lump sum on turn one is accepted, skipping rungs 1 and 2. $800 in
-  hand beats $800 over 60 days, but it never tests whether $900 was available.
 - No payment instrument is collected. Booking records an agreement, not a transaction.
