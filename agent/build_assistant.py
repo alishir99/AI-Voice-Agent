@@ -121,12 +121,14 @@ def build():
         "hooks": [{
             "on": "customer.speech.timeout",
             "name": "idle_check",
-            "options": {"timeoutSeconds": 10, "triggerMaxCount": 2,
+            "options": {"timeoutSeconds": 5, "triggerMaxCount": 3,
                         "triggerResetMode": "onUserSpeech"},
             "do": [{"type": "say", "exact": ["Are you still there?",
+                                             "Can you still hear me?",
                                              "I'm still here whenever you're ready."]}],
         }],
-        "silenceTimeoutSeconds": 45,
+        # Three checks at 5s each, then room for the last one to land before hanging up.
+        "silenceTimeoutSeconds": 25,
         "maxDurationSeconds": 420,
         "backgroundSound": "office",
     }
