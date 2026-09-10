@@ -6,3 +6,4 @@ agreements*.jsonl
 docs/
 .agents/
 skills-lock.json
+recording-script.md
