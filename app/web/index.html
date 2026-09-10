@@ -592,6 +592,9 @@
   // null unless the URL carried ?k=VAPI_SECRET; the server decides, not this page.
   const CALLS = __CALLS__;
   if (CALLS) {
+    // Reveal first: a failure below must not leave the section invisible.
+    document.getElementById("review").hidden = false;
+    document.body.classList.add("with-review");
     const money = n => "$" + Number(n).toFixed(2);
     const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
     const when = ts => new Date(ts * 1000).toLocaleString(undefined,
@@ -647,7 +650,7 @@
         </div>`;
     }).join("");
 
-    document.getElementById("calls").innerHTML = CALLS.length ? CALLS.map(c => `
+    document.getElementById("calls").innerHTML = CALLS.length ? CALLS.map(c => { try { return `
       <details>
         <summary>
           <span class="when">${when(c.ts)}</span>
@@ -661,10 +664,12 @@
               esc(c.transcript).replace(/^(AI|User):/gm, "<b>$1:</b>")}</pre>` : ""}
           ${c.recording ? `<h3>Recording</h3><a href="${esc(c.recording)}">Open the audio</a>` : ""}
         </div>
-      </details>`).join("")
-      : `<div class="empty">No calls logged yet.</div>`;
-
-    document.getElementById("review").hidden = false;
-    document.body.classList.add("with-review");
+      </details>`;
+      } catch (e) {
+        console.error("call row failed", c.call, e);
+        return `<details><summary><span class="when">${esc(String(c.call).slice(0, 8))}</span>
+                <span class="badge" data-kind="flag">could not render</span></summary></details>`;
+      }
+    }).join("") : `<div class="empty">No calls logged yet.</div>`;
   }
 </script>
