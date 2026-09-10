@@ -128,7 +128,7 @@ def build():
         "name": "Corafone - Alex",
         # Here rather than in the prompt, so it is verbatim on every call.
         "firstMessage": (
-            "Hi, this is Alex with Cora-fone. This is an attempt to collect a debt, "
+            "Hi, this is Alex with Corafone. This is an attempt to collect a debt, "
             "and any information obtained will be used for that purpose. Am I speaking with the account holder?"
         ),
         "model": {

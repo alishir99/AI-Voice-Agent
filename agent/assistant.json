@@ -1,6 +1,6 @@
 {
   "name": "Corafone - Alex",
-  "firstMessage": "Hi, this is Alex with Cora-fone. This is an attempt to collect a debt, and any information obtained will be used for that purpose. Am I speaking with the account holder?",
+  "firstMessage": "Hi, this is Alex with Corafone. This is an attempt to collect a debt, and any information obtained will be used for that purpose. Am I speaking with the account holder?",
   "model": {
     "provider": "openai",
     "model": "gpt-5.6-terra",
