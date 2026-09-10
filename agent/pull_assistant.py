@@ -94,12 +94,13 @@ def main():
             block = live.get(key) or {}
             if name == "MODEL":                               # drop what we own locally
                 block = {k: v for k, v in block.items() if k not in ("messages", "tools")}
-        # CALL is a multi-line block; a single-line pattern would eat only its first line.
+        # repr, not json.dumps: this is Python source, where true/false/null are NameErrors.
         if name == "CALL":
-            new = f"CALL = {json.dumps(block, indent=2)}"
+            body = "".join(f"  {k!r}: {v!r},\n" for k, v in block.items())
+            new = "CALL = {\n" + body + "}"
             old = re.search(r"^CALL = \{.*?^\}$", src, re.M | re.S)
         else:
-            new = f"{name} = {json.dumps(block)}"
+            new = f"{name} = {block!r}"
             old = re.search(rf"^{name} = .*$", src, re.M)
         if not old:
             raise SystemExit(f"no {name} = line in build_assistant.py")
