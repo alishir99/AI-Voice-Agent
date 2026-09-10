@@ -197,7 +197,7 @@
     }
   ],
   "endCallFunctionEnabled": true,
-  "silenceTimeoutSeconds": 25,
+  "silenceTimeoutSeconds": 40,
   "maxDurationSeconds": 420,
   "backgroundSound": "office"
 }

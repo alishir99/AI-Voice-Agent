@@ -23,8 +23,8 @@ MODEL = {"provider": "openai", "model": "gpt-5-mini", "reasoningEffort": "minima
 # MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
 # MODEL = {"provider": "google", "model": "gemini-3.5-flash", "temperature": 0.3}
 
-# Call behaviour. Everything here round-trips through pull_assistant, so the dashboard
-# can be used to experiment and `./sync.sh --pull` brings the result back into git.
+# Call behaviour, round-tripped by pull_assistant. silenceTimeoutSeconds runs from the
+# start of the call, and the disclosure alone takes ~10s, so it must clear that plus 3 checks.
 CALL = {
   "firstMessageMode": "assistant-speaks-first",
   "startSpeakingPlan": {"waitSeconds": 0.4,
@@ -38,7 +38,7 @@ CALL = {
                                               "Can you still hear me?",
                                               "I'm still here whenever you're ready."]}]}],
   "endCallFunctionEnabled": True,
-  "silenceTimeoutSeconds": 25,
+  "silenceTimeoutSeconds": 40,
   "maxDurationSeconds": 420,
   "backgroundSound": "office",
 }
