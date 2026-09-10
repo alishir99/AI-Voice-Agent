@@ -53,7 +53,7 @@
           }
         },
         "server": {
-          "url": "https://YOUR-APP.fly.dev/vapi/tool",
+          "url": "https://PUBLIC-HOST-NOT-SET/vapi/tool",
           "timeoutSeconds": 10
         }
       },
@@ -101,7 +101,7 @@
           }
         },
         "server": {
-          "url": "https://YOUR-APP.fly.dev/vapi/tool",
+          "url": "https://PUBLIC-HOST-NOT-SET/vapi/tool",
           "timeoutSeconds": 10
         }
       },
@@ -136,7 +136,7 @@
           }
         },
         "server": {
-          "url": "https://YOUR-APP.fly.dev/vapi/tool",
+          "url": "https://PUBLIC-HOST-NOT-SET/vapi/tool",
           "timeoutSeconds": 10
         }
       }
@@ -156,7 +156,7 @@
     ]
   },
   "server": {
-    "url": "https://YOUR-APP.fly.dev/vapi/events"
+    "url": "https://PUBLIC-HOST-NOT-SET/vapi/events"
   },
   "serverMessages": [
     "end-of-call-report"
