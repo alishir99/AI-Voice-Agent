@@ -5,7 +5,7 @@ outside the model.** The agent cannot invent a discount and cannot log a deal th
 did not approve.
 
 - **Talk to it:** https://fed-tmp-improvement-defined.trycloudflare.com/
-- **Call review:** https://fed-tmp-improvement-defined.trycloudflare.com/?k=gGvndHZ1yoIqjvu-dh4NMA —
+- **Call review:** https://fed-tmp-improvement-defined.trycloudflare.com/?k=gGvndHZ1yoIqjvu-dh4NMA
   every call, the offers made, the verdict the validator returned for each, and the transcript
 - **Recording:** _<link>_
 - **No phone number.** The brief accepts "a phone number or web link"; this is the web link.
