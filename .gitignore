@@ -10,3 +10,5 @@ recording-script.md
 *.pptx
 architecture*.png
 env-ready.txt
+cf/.wrangler/
+cf/node_modules/
