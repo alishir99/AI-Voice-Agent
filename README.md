@@ -158,6 +158,10 @@ your change anyway. Try providers out in the dashboard if you like, then bring t
 ./sync.sh --pull     # Vapi -> code -> Vapi, after publishing from the Composer
 ```
 
+`--pull` prints what it would change and waits for a `y`. Run it straight after a `git pull`
+and it will offer to replace what you just pulled with the older values still live at Vapi —
+that is the moment to answer `n`.
+
 `MODEL`, `VOICE`, `TRANSCRIBER` and `CALL` (first-message mode, endpointing, the idle hook,
 timeouts, background sound) all come back. The prompt, the tool definitions and the webhook
 URLs are deliberately one-way — they are the reviewed artifact, and a web form is how the
