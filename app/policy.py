@@ -148,10 +148,12 @@ def evaluate(state, offer):
                     f"Thank you for your time. {BYE}"}
 
     nxt = min(rung + 1, LAST_RUNG)
-    # Skip rungs they demonstrably cannot afford, but a lowball below the floor buys
-    # them nothing: it advances us exactly one rung, it does not surrender the discount.
+    # Skip rungs only when capacity was INFERRED from an open-ended offer ("$300 a month"),
+    # where countering the full balance is pointless. A concrete figure is an anchor, not a
+    # demonstrated ceiling: naming $800 outright must not hand over the whole discount.
+    infer = sched is None
     chosen = (next((i for i in range(nxt, len(TIERS)) if TIERS[i]["total"] <= cap + 0.005), LAST_RUNG)
-              if cap >= FLOOR_TOTAL - 0.005 else nxt)
+              if infer and cap >= FLOOR_TOTAL - 0.005 else nxt)
     counter = schedule_for(TIERS[chosen], cadence)
     # Never counter with something no better than what they already put on the table.
     # That is how an agent talks itself out of the full balance.
