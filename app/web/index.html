@@ -87,7 +87,31 @@
     -webkit-font-smoothing: antialiased;
     font-variant-numeric: tabular-nums;
   }
-  main { max-width: 40rem; margin: 0 auto; padding: clamp(3rem, 12vh, 7rem) var(--gutter) 4rem; }
+  main { max-width: 40rem; margin: 0 auto; padding: clamp(3rem, 12vh, 7rem) var(--gutter) 2rem; }
+  .pane { min-width: 0; }
+
+  /* The page only goes wide when there is a second column to justify it. */
+  body.with-review main { max-width: 78rem; }
+  @media (min-width: 64rem) {
+    body.with-review main {
+      display: grid; align-items: start;
+      grid-template-columns: minmax(0, 27rem) minmax(0, 1fr);
+      gap: clamp(2.5rem, 5vw, 5rem);
+    }
+    body.with-review #review { margin-top: 0; }
+  }
+
+  footer {
+    position: relative; max-width: 40rem; margin: 0 auto;
+    padding: 1.5rem var(--gutter) 4rem;
+    color: var(--text-2); font-size: .8125rem; line-height: 1.5;
+  }
+  /* Inset rather than a border on the padded box, so it lines up with the cards. */
+  footer::before {
+    content: ""; position: absolute; top: 0; left: var(--gutter); right: var(--gutter);
+    border-top: 1px solid var(--hairline);
+  }
+  body.with-review footer { max-width: 78rem; }
 
   .eyebrow {
     margin: 0 0 .75rem;
@@ -105,8 +129,9 @@
     padding: 1.5rem;
     display: grid; gap: 1.25rem;
   }
+  /* Label/value rows: the old flex wrap broke apart in a narrow column. */
   .account {
-    display: flex; flex-wrap: wrap; gap: .4rem .9rem; align-items: baseline;
+    display: grid; grid-template-columns: auto 1fr; gap: .35rem 1.25rem; align-items: baseline;
     margin: 0; padding-bottom: 1.25rem; border-bottom: 1px solid var(--hairline);
   }
   .account dt { margin: 0; font-size: .8125rem; color: var(--text-2); }
@@ -177,10 +202,6 @@
   li b { display: block; font-weight: 590; font-size: .9375rem; }
   li span { color: var(--text-2); font-size: .9375rem; }
 
-  footer {
-    margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--hairline);
-    color: var(--text-2); font-size: .8125rem; line-height: 1.5;
-  }
 
   .notice {
     margin: 0; padding: .9rem 1rem;
@@ -206,14 +227,20 @@
 
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 980px; }
 
-  main > * { animation: rise .5s cubic-bezier(.32, .72, 0, 1) backwards; }
-  main > :nth-child(2) { animation-delay: .04s; }
-  main > :nth-child(3) { animation-delay: .08s; }
-  main > :nth-child(4) { animation-delay: .12s; }
-  main > :nth-child(5) { animation-delay: .16s; }
+  .pane > *, #review > * { animation: rise .5s cubic-bezier(.32, .72, 0, 1) backwards; }
+  .pane > :nth-child(2) { animation-delay: .04s; }
+  .pane > :nth-child(3) { animation-delay: .08s; }
+  .pane > :nth-child(4) { animation-delay: .12s; }
+  .pane > :nth-child(5) { animation-delay: .16s; }
+  /* Stagger the call list rather than revealing it all at once. */
+  .calls > details { animation: rise .4s cubic-bezier(.32, .72, 0, 1) backwards; }
+  .calls > :nth-child(1) { animation-delay: .06s; }
+  .calls > :nth-child(2) { animation-delay: .1s; }
+  .calls > :nth-child(3) { animation-delay: .14s; }
+  .calls > :nth-child(n+4) { animation-delay: .18s; }
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
   @media (prefers-reduced-motion: reduce) {
-    main > * { animation: none; }
+    .pane > *, #review > *, .calls > details { animation: none; }
     .pulse, .status .dot, .spinner { animation: none; transition: none; }
     .pulse { opacity: 0; }
     *, *::before, *::after { transition-duration: .01ms !important; }
@@ -297,7 +324,7 @@
   pre.transcript {
     margin: 0; padding: .9rem; background: var(--raised); border: 1px solid var(--hairline);
     border-radius: 12px; white-space: pre-wrap; word-break: break-word;
-    font: 400 .875rem/1.6 inherit; max-height: 20rem; overflow-y: auto;
+    font: 400 .875rem/1.6 inherit;
   }
   .transcript b { font-weight: 590; }
   .empty {
@@ -319,6 +346,7 @@
 </button>
 
 <main>
+  <div class="pane">
   <p class="eyebrow">Account review line</p>
   <h1>Speak with Alex.</h1>
   <p class="lede">A collections call you can have on your own terms.</p>
@@ -388,17 +416,19 @@
     </li>
   </ul>
 
+  </div>
+
   <section id="review" hidden>
     <h2>Call review</h2>
     <dl class="stats" id="stats"></dl>
     <div class="calls" id="calls"></div>
   </section>
-
-  <footer>
-    Simulated account for evaluation purposes. No real debt, no real consumer data, and no
-    payment details are collected on this line.
-  </footer>
 </main>
+
+<footer>
+  Simulated account for evaluation purposes. No real debt, no real consumer data, and no
+  payment details are collected on this line.
+</footer>
 
 <script>
   // Outside the module below, so a calling-library failure cannot kill this button.
@@ -635,5 +665,6 @@
       : `<div class="empty">No calls logged yet.</div>`;
 
     document.getElementById("review").hidden = false;
+    document.body.classList.add("with-review");
   }
 </script>
