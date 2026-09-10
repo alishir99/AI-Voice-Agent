@@ -9,8 +9,21 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 if [ "${1:-}" = "--pull" ]; then
-  echo "== pulling the live provider stack into build_assistant.py"
-  python -m agent.pull_assistant --write
+  echo "== what the live assistant would change in build_assistant.py"
+  out=$(python -m agent.pull_assistant)
+  echo "$out"
+  if echo "$out" | grep -q "already matches"; then
+    echo "== nothing to pull"
+  else
+    # Confirm, because a pull run at the wrong moment overwrites changes you just
+    # pulled from git with the older values still live at Vapi.
+    printf "\napply these to build_assistant.py? [y/N] "
+    read -r answer
+    case "$answer" in
+      y|Y|yes) python -m agent.pull_assistant --write --force ;;
+      *) echo "aborted, nothing written"; exit 1 ;;
+    esac
+  fi
 fi
 
 echo "== rebuilding assistant.json from prompt.md"
