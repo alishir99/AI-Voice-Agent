@@ -171,4 +171,10 @@ def book(state, terms):
         return {"ok": False, "reason": "no matching offer issued on this call"}
     if not legal(total, sched):
         return {"ok": False, "reason": "terms violate policy"}
-    return {"ok": True, "total": round(total, 2), "schedule": sched}
+    first = sched[0]
+    return {"ok": True, "total": round(total, 2), "schedule": sched,
+            # The closing line comes from here too, so the agent has nothing to invent
+            # at the one moment the call is worth something.
+            "say": f"That's locked in. ${total:.2f} total, starting with "
+                   f"${first['amount']:.2f} {'today' if first['day'] == 0 else f'in {first["day"]} days'}. "
+                   f"Thank you for taking care of this."}

@@ -109,4 +109,12 @@ evaluate(st2, offer(amount_per_payment=400, num_payments=1, cadence="once"))
 stale = book(st2, {"total": first["total"], "schedule": first["schedule"]})
 assert stale["ok"] is False or first["total"] == st2["offered"]["total"], stale
 
+# --- a booked deal carries its own closing line ---------------------------------
+st = {}
+r = evaluate(st, offer(amount_per_payment=400, num_payments=1, cadence="once"))
+ok = book(st, {"total": r["terms"]["total"], "schedule": r["terms"]["schedule"]})
+assert ok["ok"] and "locked in" in ok["say"], ok
+assert f"{r['terms']['total']:.2f}" in ok["say"], ok
+assert "say" not in book(st, {"total": 400, "schedule": [{"day": 0, "amount": 400}]})
+
 print("all policy tests pass")
