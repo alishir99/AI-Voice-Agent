@@ -9,6 +9,10 @@ Stated assumption: "25%" is 25% OF THE AGREED TOTAL. That is the only reading th
 makes weekly/biweekly meaningful: it caps every schedule at 4 payments.
 """
 
+# Vapi hangs up when the assistant says this (endCallPhrases). Every terminal line
+# ends with it, and it appears nowhere else, so hanging up needs no model turn.
+BYE = "Goodbye now."
+
 BALANCE = 1000.00
 FLOOR_TOTAL = 800.00          # 20% max discount
 MIN_PAY_PCT = 0.25            # => at most 4 payments
@@ -140,7 +144,8 @@ def evaluate(state, offer):
         if state["below_floor"] >= 3 and rung >= FLOOR_RUNG:
             return {"verdict": "hardship", "final": True, "say":
                     "It sounds like nothing in my authority fits your situation right now. "
-                    "I'll note that on the account and have someone follow up. Thank you for your time."}
+                    f"I'll note that on the account and have someone follow up. "
+                    f"Thank you for your time. {BYE}"}
 
     nxt = min(rung + 1, LAST_RUNG)
     # Skip rungs they demonstrably cannot afford, but a lowball below the floor buys
@@ -177,4 +182,4 @@ def book(state, terms):
             # at the one moment the call is worth something.
             "say": f"That's locked in. ${total:.2f} total, starting with "
                    f"${first['amount']:.2f} {'today' if first['day'] == 0 else f'in {first["day"]} days'}. "
-                   f"Thank you for taking care of this."}
+                   f"Thank you for taking care of this. {BYE}"}

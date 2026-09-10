@@ -17,6 +17,7 @@ SRC = HERE / "build_assistant.py"
 FIELDS = {"MODEL": "model", "VOICE": "voice", "TRANSCRIBER": "transcriber"}
 # Everything in CALL comes back too, so dashboard tuning is not silently reverted.
 CALL_KEYS = ["firstMessageMode", "startSpeakingPlan", "stopSpeakingPlan", "hooks",
+             "endCallPhrases",
              "endCallFunctionEnabled", "silenceTimeoutSeconds", "maxDurationSeconds",
              "backgroundSound"]
 

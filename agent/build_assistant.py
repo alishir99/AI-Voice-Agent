@@ -45,6 +45,9 @@ CALL = {
      "do": [{"type": "say", "exact": ["I can't hear anything. I'll let you go for now."]}]},
   ],
   "endCallFunctionEnabled": True,
+  # Vapi hangs up the moment the assistant speaks this. Every line that ends a call
+  # carries it, and nothing else does, so the hangup needs no extra model turn.
+  "endCallPhrases": ["Goodbye now"],
   "silenceTimeoutSeconds": 22,
   "maxDurationSeconds": 420,
   "backgroundSound": "office",

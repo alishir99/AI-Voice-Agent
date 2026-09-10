@@ -48,7 +48,8 @@ def handle(name, args, state):
         return r
     if name == "log_cease":
         state["cease"] = args.get("reason", "unspecified")
-        return {"ok": True, "say": "Understood. I've noted that and I'll end the call here."}
+        return {"ok": True,
+                "say": f"Understood. I've noted that and I'll end the call here. {policy.BYE}"}
     return {"error": f"unknown tool {name}"}
 
 
