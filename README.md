@@ -5,7 +5,12 @@ outside the model.** The agent cannot invent a discount and cannot log a deal th
 did not approve.
 
 - **Talk to it:** https://fed-tmp-improvement-defined.trycloudflare.com/
+- **Call review:** https://fed-tmp-improvement-defined.trycloudflare.com/?k=REVIEW_KEY —
+  every call, the offers made, the verdict the validator returned for each, and the transcript
 - **Recording:** _<link>_
+- **No phone number.** The brief accepts "a phone number or web link"; this is the web link.
+  Outbound dialling is written (`python -m agent.place_call +46...`) but no number is
+  provisioned, so it is untested against a live carrier.
 
 ---
 
@@ -163,6 +168,7 @@ The prompt and tool definitions are deliberately one-way. They are the reviewed 
 | `VAPI_ASSISTANT_ID` | `deploy_assistant` output | no |
 | `VAPI_API_KEY` | Vapi, API Keys, private | **yes** |
 | `VAPI_SECRET` | any random string; sent as `x-vapi-secret` on both webhooks | **yes** |
+| `REVIEW_KEY` | unlocks `/?k=`. Defaults to `VAPI_SECRET` — set it separately so a shared review link is not also webhook auth | shareable |
 | `PUBLIC_HOST` | your public URL | no |
 | `VAPI_PHONE_NUMBER_ID` | Vapi, Phone Numbers; outbound only | no |
 
@@ -193,12 +199,11 @@ ok   3f2a...: every figure traced to a tool response
 FAIL 9c81...: agent spoke [400.0], validator issued [0.0, 300.0, 900.0, 1000.0]
 ```
 
-### Phone number
+### Phone number — not provisioned
 
-Inbound: assign the assistant to the number in the dashboard, nothing in code. Outbound: put
-the number's **ID** in `VAPI_PHONE_NUMBER_ID`, then `python -m agent.place_call +46...`.
-Free Vapi numbers are US-inbound only. Import a Twilio number for both directions and enable
-the destination country under Twilio, Voice, Geo permissions.
+No number is attached, so the web link is the way in. To add one: import a Twilio number in
+the Vapi dashboard (free Vapi numbers are US-inbound only), assign the assistant to it for
+inbound, and put the number's **ID** in `VAPI_PHONE_NUMBER_ID` for `agent/place_call.py`.
 
 ---
 

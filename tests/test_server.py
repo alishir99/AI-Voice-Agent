@@ -65,8 +65,13 @@ server.LOG.unlink(missing_ok=True)
 assert "__CALLS__" not in c.get("/").text
 assert "const CALLS = null" in c.get("/").text
 assert "const CALLS = null" in c.get("/?k=nope").text
-if server.SECRET:
-    assert "const CALLS = [" in c.get(f"/?k={server.SECRET}").text
+if server.REVIEW_KEY:
+    assert "const CALLS = [" in c.get(f"/?k={server.REVIEW_KEY}").text
+# a review link must never be usable as webhook auth
+server.REVIEW_KEY = "review-only"
+assert "const CALLS = null" in c.get(f"/?k={server.SECRET}").text if server.SECRET else True
+assert c.post("/vapi/events", json={"message": {}},
+              headers={"x-vapi-secret": "review-only"}).json() == {"ok": True}
 
 # --- both Vapi tool-call shapes reach the validator ----------------------------
 # The flat shape passed while every live call failed, because Vapi sends the nested one.

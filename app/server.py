@@ -19,6 +19,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 LOG = ROOT / "agreements.jsonl"
 SECRET = os.getenv("VAPI_SECRET")            # optional shared secret on the webhook
+# Separate from SECRET so a shareable review link never carries webhook auth.
+REVIEW_KEY = os.getenv("REVIEW_KEY") or SECRET
 
 # ponytail: in-process, dies on redeploy. One always-on instance for a 7-day window
 # is the whole requirement; swap for Redis if you ever run more than one replica.
@@ -129,11 +131,11 @@ def read_calls():
 
 @app.get("/", response_class=HTMLResponse)
 def home(k: str = ""):
-    """One page. The call review only renders for ?k=VAPI_SECRET, because
+    """One page. The call review only renders for ?k=REVIEW_KEY, because
     transcripts are conversation content and this URL is public."""
     page = (HERE / "web" / "index.html").read_text(encoding="utf-8")
     for name in ("VAPI_PUBLIC_KEY", "VAPI_ASSISTANT_ID"):
         page = page.replace(f"__{name}__", os.getenv(name, ""))
-    data = json.dumps(read_calls()) if SECRET and k == SECRET else "null"
+    data = json.dumps(read_calls()) if REVIEW_KEY and k == REVIEW_KEY else "null"
     # A transcript could contain "</script>" and end the block early.
     return page.replace("__CALLS__", data.replace("</", r"<\/"))
