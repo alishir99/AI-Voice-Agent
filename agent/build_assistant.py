@@ -117,7 +117,16 @@ def build():
         "server": {"url": f"{HOST}/vapi/events"},
         "serverMessages": ["end-of-call-report"],
         "endCallFunctionEnabled": True,
-        "silenceTimeoutSeconds": 20,
+        # The model gets no turn during silence, so re-engagement is a hook, not the prompt.
+        "hooks": [{
+            "on": "customer.speech.timeout",
+            "name": "idle_check",
+            "options": {"timeoutSeconds": 10, "triggerMaxCount": 2,
+                        "triggerResetMode": "onUserSpeech"},
+            "do": [{"type": "say", "exact": ["Are you still there?",
+                                             "I'm still here whenever you're ready."]}],
+        }],
+        "silenceTimeoutSeconds": 45,
         "maxDurationSeconds": 420,
         "backgroundSound": "office",
     }
