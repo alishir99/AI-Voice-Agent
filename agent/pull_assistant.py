@@ -1,11 +1,12 @@
 """Pull the live provider stack from Vapi back into build_assistant.py.
 
-    python -m agent.pull_assistant [--write | --show]
+    python -m agent.pull_assistant [--write [--force] | --show]
 
-Only MODEL, VOICE and TRANSCRIBER come back; the prompt and tool definitions stay one-way.
+MODEL, VOICE, TRANSCRIBER and CALL come back; prompt, tools and webhook URLs stay one-way.
 """
 import json
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -64,6 +65,16 @@ def show(live, env):
         print(f"  secret       {'set' if hdr.get('x-vapi-secret') else 'MISSING - webhooks are being rejected'}")
 
 
+def dirty():
+    """True if build_assistant.py has uncommitted changes. Outside git, assume clean."""
+    try:
+        r = subprocess.run(["git", "status", "--porcelain", "--", str(SRC)],
+                           cwd=HERE.parent, capture_output=True, text=True, timeout=5)
+        return bool(r.stdout.strip())
+    except Exception:
+        return False
+
+
 def main():
     env = load_env()
     if not env.get("VAPI_ASSISTANT_ID") or not env.get("VAPI_API_KEY"):
@@ -111,6 +122,14 @@ def main():
     if "--write" not in sys.argv:
         print("\nrun again with --write to apply, then: python -m agent.deploy_assistant")
         return
+
+    # Overwriting local edits with the live version silently reverts anything just
+    # pulled or hand-edited but not yet deployed.
+    if "--force" not in sys.argv and dirty():
+        raise SystemExit(
+            "\nbuild_assistant.py has uncommitted changes and --write would discard them.\n"
+            "  deploy them instead:  ./sync.sh\n"
+            "  or overwrite anyway:  python -m agent.pull_assistant --write --force")
 
     SRC.write_text(src, encoding="utf-8")
     print(f"\nwrote {SRC.relative_to(HERE.parent)} - now run:")
