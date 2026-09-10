@@ -10,8 +10,9 @@ makes weekly/biweekly meaningful: it caps every schedule at 4 payments.
 """
 
 # Vapi hangs up when the assistant says this (endCallPhrases). Every terminal line
-# ends with it, and it appears nowhere else, so hanging up needs no model turn.
-BYE = "Goodbye now."
+# ends with it and nothing else does. One word, because the model trimmed a
+# two-word phrase down and the match then missed.
+BYE = "Goodbye."
 
 BALANCE = 1000.00
 FLOOR_TOTAL = 800.00          # 20% max discount
