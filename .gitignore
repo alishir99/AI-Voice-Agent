@@ -7,3 +7,4 @@ docs/
 .agents/
 skills-lock.json
 recording-script.md
+*.pptx
