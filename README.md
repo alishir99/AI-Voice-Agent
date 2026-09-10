@@ -4,8 +4,8 @@ Negotiates a $1,000 delinquent account. Every number it speaks comes from a poli
 outside the model. It cannot invent a discount, and cannot log a deal the validator refused.
 
 - **Talk to it:** https://corafone-agent.alishirzad444.workers.dev
-- **Call review:** append `?k=gGvndHZ1yoIqjvu-dh4NMA` for every call, the offers made, the
-  validator's verdict for each, and the transcript
+- **Call review:** https://corafone-agent.alishirzad444.workers.dev/dashboard for every call,
+  the offers made, the validator's verdict for each, and the transcript
 - **Recording:** _<link>_
 - No phone number. The brief accepts a phone number or a web link; this is the web link.
 
@@ -161,7 +161,7 @@ cd cf && npx wrangler deploy      # set ORIGIN in the dashboard when the tunnel 
 | `VAPI_ASSISTANT_ID` | `deploy_assistant` output | no |
 | `VAPI_API_KEY` | Vapi, API Keys, private | **yes** |
 | `VAPI_SECRET` | random; sent as `x-vapi-secret` on both webhooks | **yes** |
-| `REVIEW_KEY` | unlocks `/?k=`. Defaults to `VAPI_SECRET` | shareable |
+| `REVIEW_KEY` | unlocks `/?k=`. `/dashboard` shows the same thing unguarded | shareable |
 | `PUBLIC_HOST` | your public URL | no |
 | `VAPI_PHONE_NUMBER_ID` | outbound only, unused here | no |
 

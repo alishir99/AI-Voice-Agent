@@ -67,6 +67,7 @@ assert "const CALLS = null" in c.get("/").text
 assert "const CALLS = null" in c.get("/?k=nope").text
 if server.REVIEW_KEY:
     assert "const CALLS = [" in c.get(f"/?k={server.REVIEW_KEY}").text
+assert "const CALLS = [" in c.get("/dashboard").text      # unguarded on purpose
 # a review link must never be usable as webhook auth
 server.REVIEW_KEY = "review-only"
 assert "const CALLS = null" in c.get(f"/?k={server.SECRET}").text if server.SECRET else True

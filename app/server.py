@@ -130,13 +130,25 @@ def read_calls():
     return sorted(grouped.values(), key=lambda c: -(c["ts"] or 0))
 
 
-@app.get("/", response_class=HTMLResponse)
-def home(k: str = ""):
-    """One page. The call review only renders for ?k=REVIEW_KEY, because
-    transcripts are conversation content and this URL is public."""
+def render(with_review: bool):
     page = (HERE / "web" / "index.html").read_text(encoding="utf-8")
     for name in ("VAPI_PUBLIC_KEY", "VAPI_ASSISTANT_ID"):
         page = page.replace(f"__{name}__", os.getenv(name, ""))
-    data = json.dumps(read_calls()) if REVIEW_KEY and k == REVIEW_KEY else "null"
+    data = json.dumps(read_calls()) if with_review else "null"
     # A transcript could contain "</script>" and end the block early.
     return page.replace("__CALLS__", data.replace("</", r"<\/"))
+
+
+@app.get("/", response_class=HTMLResponse)
+def home(k: str = ""):
+    """The call page. ?k=REVIEW_KEY also renders the review, which is how the
+    link was shared before /dashboard existed."""
+    return render(bool(REVIEW_KEY) and k == REVIEW_KEY)
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard():
+    """Same page with the review shown. Deliberately unguarded: the key was
+    published in the README, so it protected nothing, and the calls are against
+    a simulated account."""
+    return render(True)
