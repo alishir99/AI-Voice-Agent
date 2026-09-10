@@ -59,7 +59,8 @@ def show(live, env):
           + (f"  ({extra})" if extra else ""))
     print(f"  voice        {v.get('provider','?')} / {v.get('voiceId','?')}")
     print(f"  transcriber  {t.get('provider','?')} / {t.get('model','?')}")
-    print(f"  tools        {len(tools)}: {', '.join(x['function']['name'] for x in tools) or 'NONE'}")
+    names = [x.get("function", {}).get("name") or x.get("type", "?") for x in tools]
+    print(f"  tools        {len(tools)}: {', '.join(names) or 'NONE'}")
     print(f"  webhook      {url}")
     if env.get("VAPI_SECRET"):
         print(f"  secret       {'set' if hdr.get('x-vapi-secret') else 'MISSING - webhooks are being rejected'}")

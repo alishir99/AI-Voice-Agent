@@ -114,6 +114,9 @@ TOOLS = [
         ["reason"],
         "Of course.",
     ),
+    # Built-in. Without it in the array the model has no way to hang up, and
+    # endCallFunctionEnabled alone leaves it saying goodbye to an open line.
+    {"type": "endCall"},
 ]
 
 
