@@ -3,8 +3,7 @@
   "firstMessage": "Hi, this is Alex with Corafone. This is an attempt to collect a debt, and any information obtained will be used for that purpose. Am I speaking with the account holder?",
   "model": {
     "provider": "openai",
-    "model": "gpt-5-mini",
-    "reasoningEffort": "minimal",
+    "model": "gpt-5.6-terra",
     "messages": [
       {
         "role": "system",
