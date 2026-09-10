@@ -7,6 +7,5 @@ docs/
 tests/
 README.md
 compose.yaml
-fly.toml
 .env
 .env.example

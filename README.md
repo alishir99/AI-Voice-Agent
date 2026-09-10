@@ -136,7 +136,7 @@ echo "PUBLIC_HOST=https://your-url" >> .env
 
 `./sync.sh --pull` brings dashboard changes back into `build_assistant.py` (shows a diff,
 waits for `y`). Commit them or the next `git pull` reverts them. Prompt, tools and webhook
-URLs stay one-way. `fly.toml` is included if you'd rather use Fly.
+URLs stay one-way.
 
 | key | from | secret |
 |---|---|---|

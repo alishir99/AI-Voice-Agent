@@ -15,7 +15,7 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE / "assistant.json"
 
 # Where Vapi sends tool calls. Quick-tunnel URLs rotate on restart, so keep it in .env.
-HOST = os.getenv("PUBLIC_HOST", "https://YOUR-APP.fly.dev").rstrip("/")
+HOST = os.getenv("PUBLIC_HOST", "https://PUBLIC-HOST-NOT-SET").rstrip("/")
 
 # Pick for tool-calling reliability, not intelligence: a model that speaks a figure
 # instead of calling evaluate_offer bypasses the design. `python -m agent.audit` catches it.
