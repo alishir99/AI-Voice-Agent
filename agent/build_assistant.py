@@ -19,7 +19,7 @@ HOST = os.getenv("PUBLIC_HOST", "https://YOUR-APP.fly.dev").rstrip("/")
 
 # Pick for tool-calling reliability, not intelligence: a model that speaks a figure
 # instead of calling evaluate_offer bypasses the design. `python -m agent.audit` catches it.
-MODEL = {"provider": "openai", "model": "gpt-5-mini", "reasoningEffort": "minimal"}
+MODEL = {"provider": "openai", "model": "gpt-5.6-terra"}
 # MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
 # MODEL = {"provider": "google", "model": "gemini-3.5-flash", "temperature": 0.3}
 
