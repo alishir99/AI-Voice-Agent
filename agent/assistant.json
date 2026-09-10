@@ -1,7 +1,6 @@
 {
   "name": "Corafone - Alex",
   "firstMessage": "Hi, this is Alex with Corafone. This is an attempt to collect a debt, and any information obtained will be used for that purpose. Am I speaking with the account holder?",
-  "firstMessageMode": "assistant-speaks-first",
   "model": {
     "provider": "openai",
     "model": "gpt-5-mini",
@@ -157,6 +156,13 @@
       "en"
     ]
   },
+  "server": {
+    "url": "https://YOUR-APP.fly.dev/vapi/events"
+  },
+  "serverMessages": [
+    "end-of-call-report"
+  ],
+  "firstMessageMode": "assistant-speaks-first",
   "startSpeakingPlan": {
     "waitSeconds": 0.4,
     "smartEndpointingPlan": {
@@ -169,13 +175,6 @@
     "voiceSeconds": 0.2,
     "backoffSeconds": 1.0
   },
-  "server": {
-    "url": "https://YOUR-APP.fly.dev/vapi/events"
-  },
-  "serverMessages": [
-    "end-of-call-report"
-  ],
-  "endCallFunctionEnabled": true,
   "hooks": [
     {
       "on": "customer.speech.timeout",
@@ -197,6 +196,7 @@
       ]
     }
   ],
+  "endCallFunctionEnabled": true,
   "silenceTimeoutSeconds": 25,
   "maxDurationSeconds": 420,
   "backgroundSound": "office"

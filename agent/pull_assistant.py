@@ -14,6 +14,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "build_assistant.py"
 FIELDS = {"MODEL": "model", "VOICE": "voice", "TRANSCRIBER": "transcriber"}
+# Everything in CALL comes back too, so dashboard tuning is not silently reverted.
+CALL_KEYS = ["firstMessageMode", "startSpeakingPlan", "stopSpeakingPlan", "hooks",
+             "endCallFunctionEnabled", "silenceTimeoutSeconds", "maxDurationSeconds",
+             "backgroundSound"]
 
 
 def load_env():
@@ -72,12 +76,20 @@ def main():
     src = SRC.read_text(encoding="utf-8")
     changed = []
 
-    for name, key in FIELDS.items():
-        block = live.get(key) or {}
-        if name == "MODEL":                                   # drop what we own locally
-            block = {k: v for k, v in block.items() if k not in ("messages", "tools")}
-        new = f"{name} = {json.dumps(block)}"
-        old = re.search(rf"^{name} = .*$", src, re.M)
+    for name, key in {**FIELDS, "CALL": None}.items():
+        if name == "CALL":
+            block = {k: live[k] for k in CALL_KEYS if k in live}
+        else:
+            block = live.get(key) or {}
+            if name == "MODEL":                               # drop what we own locally
+                block = {k: v for k, v in block.items() if k not in ("messages", "tools")}
+        # CALL is a multi-line block; a single-line pattern would eat only its first line.
+        if name == "CALL":
+            new = f"CALL = {json.dumps(block, indent=2)}"
+            old = re.search(r"^CALL = \{.*?^\}$", src, re.M | re.S)
+        else:
+            new = f"{name} = {json.dumps(block)}"
+            old = re.search(rf"^{name} = .*$", src, re.M)
         if not old:
             raise SystemExit(f"no {name} = line in build_assistant.py")
         if old.group(0) != new:
