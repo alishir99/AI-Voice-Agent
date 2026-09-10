@@ -37,7 +37,8 @@ def main():
         headers = {"x-vapi-secret": secret}
         body["server"]["headers"] = headers
         for t in body["model"]["tools"]:
-            t["server"]["headers"] = headers
+            if "server" in t:                       # built-ins like endCall have none
+                t["server"]["headers"] = headers
 
     aid = os.getenv("VAPI_ASSISTANT_ID")
     req = urllib.request.Request(
