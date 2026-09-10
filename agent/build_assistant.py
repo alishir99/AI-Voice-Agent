@@ -23,6 +23,26 @@ MODEL = {"provider": "openai", "model": "gpt-5-mini", "reasoningEffort": "minima
 # MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
 # MODEL = {"provider": "google", "model": "gemini-3.5-flash", "temperature": 0.3}
 
+# Call behaviour. Everything here round-trips through pull_assistant, so the dashboard
+# can be used to experiment and `./sync.sh --pull` brings the result back into git.
+CALL = {
+  "firstMessageMode": "assistant-speaks-first",
+  "startSpeakingPlan": {"waitSeconds": 0.4,
+                        "smartEndpointingPlan": {"provider": "livekit",
+                                                 "waitFunction": "200 + 4000 * x"}},
+  "stopSpeakingPlan": {"numWords": 2, "voiceSeconds": 0.2, "backoffSeconds": 1.0},
+  "hooks": [{"on": "customer.speech.timeout", "name": "idle_check",
+             "options": {"timeoutSeconds": 5, "triggerMaxCount": 3,
+                         "triggerResetMode": "onUserSpeech"},
+             "do": [{"type": "say", "exact": ["Are you still there?",
+                                              "Can you still hear me?",
+                                              "I'm still here whenever you're ready."]}]}],
+  "endCallFunctionEnabled": True,
+  "silenceTimeoutSeconds": 25,
+  "maxDurationSeconds": 420,
+  "backgroundSound": "office",
+}
+
 VOICE = {"provider": "vapi", "voiceId": "Elliot", "version": "2"}
 TRANSCRIBER = {"provider": "soniox", "model": "stt-rt-v5", "language": "en", "languages": ["en"]}
 
@@ -98,7 +118,6 @@ def build():
             "Hi, this is Alex with Corafone. This is an attempt to collect a debt, "
             "and any information obtained will be used for that purpose. Am I speaking with the account holder?"
         ),
-        "firstMessageMode": "assistant-speaks-first",
         "model": {
             **MODEL,
             "messages": [{"role": "system", "content": (HERE / "prompt.md").read_text(encoding="utf-8")}],
@@ -106,31 +125,9 @@ def build():
         },
         "voice": VOICE,
         "transcriber": TRANSCRIBER,
-        "startSpeakingPlan": {
-            "waitSeconds": 0.4,
-            # x = probability the caller is still speaking; result = ms to wait.
-            # Anything with a low ceiling talks over a mid-sentence pause.
-            "smartEndpointingPlan": {"provider": "livekit",
-                                     "waitFunction": "200 + 4000 * x"},
-        },
-        "stopSpeakingPlan": {"numWords": 2, "voiceSeconds": 0.2, "backoffSeconds": 1.0},
         "server": {"url": f"{HOST}/vapi/events"},
         "serverMessages": ["end-of-call-report"],
-        "endCallFunctionEnabled": True,
-        # The model gets no turn during silence, so re-engagement is a hook, not the prompt.
-        "hooks": [{
-            "on": "customer.speech.timeout",
-            "name": "idle_check",
-            "options": {"timeoutSeconds": 5, "triggerMaxCount": 3,
-                        "triggerResetMode": "onUserSpeech"},
-            "do": [{"type": "say", "exact": ["Are you still there?",
-                                             "Can you still hear me?",
-                                             "I'm still here whenever you're ready."]}],
-        }],
-        # Three checks at 5s each, then room for the last one to land before hanging up.
-        "silenceTimeoutSeconds": 25,
-        "maxDurationSeconds": 420,
-        "backgroundSound": "office",
+        **CALL,
     }
 
 
