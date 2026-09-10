@@ -232,7 +232,8 @@
   ],
   "endCallFunctionEnabled": true,
   "endCallPhrases": [
-    "Goodbye now"
+    "Goodbye",
+    "goodbye"
   ],
   "silenceTimeoutSeconds": 22,
   "maxDurationSeconds": 420,
