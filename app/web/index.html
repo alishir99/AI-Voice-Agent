@@ -90,11 +90,10 @@
   main { max-width: 40rem; margin: 0 auto; padding: clamp(3rem, 12vh, 7rem) var(--gutter) 2rem; }
   .pane { min-width: 0; }
 
-  /* The page only goes wide when there is a second column to justify it. */
-  body.with-review main { max-width: 78rem; }
+  /* Only go wide where the second column actually exists; stacked stays centred. */
   @media (min-width: 64rem) {
     body.with-review main {
-      display: grid; align-items: start;
+      max-width: 78rem; display: grid; align-items: start;
       grid-template-columns: minmax(0, 27rem) minmax(0, 1fr);
       gap: clamp(2.5rem, 5vw, 5rem);
     }
@@ -111,7 +110,7 @@
     content: ""; position: absolute; top: 0; left: var(--gutter); right: var(--gutter);
     border-top: 1px solid var(--hairline);
   }
-  body.with-review footer { max-width: 78rem; }
+  @media (min-width: 64rem) { body.with-review footer { max-width: 78rem; } }
 
   .eyebrow {
     margin: 0 0 .75rem;
@@ -347,6 +346,7 @@
   @media (max-width: 63.99rem) {
     body.with-review[data-view="call"] #review { display: none; }
     body.with-review[data-view="review"] .pane > :not(.segmented) { display: none; }
+    body.with-review[data-view="review"] #review { margin-top: 0; }
     body.with-review[data-view="review"] #review > h2 { display: none; }
   }
 </style>
