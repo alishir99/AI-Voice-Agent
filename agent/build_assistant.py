@@ -31,14 +31,21 @@ CALL = {
                         "smartEndpointingPlan": {"provider": "livekit",
                                                  "waitFunction": "200 + 4000 * x"}},
   "stopSpeakingPlan": {"numWords": 2, "voiceSeconds": 0.2, "backoffSeconds": 1.0},
-  "hooks": [{"on": "customer.speech.timeout", "name": "idle_check",
-             "options": {"timeoutSeconds": 5, "triggerMaxCount": 3,
-                         "triggerResetMode": "onUserSpeech"},
-             "do": [{"type": "say", "exact": ["Are you still there?",
-                                              "Can you still hear me?",
-                                              "I'm still here whenever you're ready."]}]}],
+  # One hook per check: triggerMaxCount needs a fresh speech-then-silence cycle to
+  # re-fire, so a caller who never speaks gets exactly one. Separate timeouts do not.
+  "hooks": [
+    {"on": "customer.speech.timeout", "name": "idle_1",
+     "options": {"timeoutSeconds": 5, "triggerMaxCount": 3, "triggerResetMode": "onUserSpeech"},
+     "do": [{"type": "say", "exact": ["Hello? Can you hear me?"]}]},
+    {"on": "customer.speech.timeout", "name": "idle_2",
+     "options": {"timeoutSeconds": 10, "triggerMaxCount": 3, "triggerResetMode": "onUserSpeech"},
+     "do": [{"type": "say", "exact": ["Are you still there?"]}]},
+    {"on": "customer.speech.timeout", "name": "idle_3",
+     "options": {"timeoutSeconds": 15, "triggerMaxCount": 3, "triggerResetMode": "onUserSpeech"},
+     "do": [{"type": "say", "exact": ["I can't hear anything. I'll let you go for now."]}]},
+  ],
   "endCallFunctionEnabled": True,
-  "silenceTimeoutSeconds": 40,
+  "silenceTimeoutSeconds": 22,
   "maxDurationSeconds": 420,
   "backgroundSound": "office",
 }
