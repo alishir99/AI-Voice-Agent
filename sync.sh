@@ -32,4 +32,5 @@ python -m agent.build_assistant
 echo "== pushing to Vapi"
 python -m agent.deploy_assistant
 
-python -m agent.pull_assistant --show
+# On a first create the id is not in .env yet, so this cannot report anything.
+python -m agent.pull_assistant --show || echo "(set VAPI_ASSISTANT_ID in .env, then rerun)"
