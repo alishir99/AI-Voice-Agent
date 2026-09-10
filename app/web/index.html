@@ -331,6 +331,24 @@
     background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius);
     padding: 1.75rem 1.5rem; text-align: center; color: var(--text-2); box-shadow: var(--shadow);
   }
+
+  /* Segmented control: only where the layout stacks. On wide screens both
+     columns are visible at once, so a tab would hide what already fits. */
+  .segmented {
+    display: inline-flex; gap: .25rem; padding: .25rem; margin: 0 0 2rem;
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 980px;
+  }
+  .segmented button {
+    min-height: 38px; padding: 0 1.1rem; border: 0; border-radius: 980px;
+    background: transparent; color: var(--text-2); font-weight: 590; font-size: .9375rem;
+  }
+  .segmented button[aria-pressed="true"] { background: var(--raised); color: var(--text); box-shadow: var(--shadow); }
+  @media (min-width: 64rem) { .segmented { display: none; } }
+  @media (max-width: 63.99rem) {
+    body.with-review[data-view="call"] #review { display: none; }
+    body.with-review[data-view="review"] .pane > :not(.segmented) { display: none; }
+    body.with-review[data-view="review"] #review > h2 { display: none; }
+  }
 </style>
 
 <button id="theme" class="icon-btn" aria-label="Switch to dark mode" title="Switch to dark mode">
@@ -347,6 +365,10 @@
 
 <main>
   <div class="pane">
+  <div class="segmented" id="tabs" role="group" aria-label="View" hidden>
+    <button type="button" data-view="call" aria-pressed="true">Call</button>
+    <button type="button" data-view="review" aria-pressed="false">Review</button>
+  </div>
   <p class="eyebrow">Account review line</p>
   <h1>Speak with Alex.</h1>
   <p class="lede">A collections call you can have on your own terms.</p>
@@ -595,6 +617,17 @@
     // Reveal first: a failure below must not leave the section invisible.
     document.getElementById("review").hidden = false;
     document.body.classList.add("with-review");
+
+    const tabs = document.getElementById("tabs");
+    tabs.hidden = false;
+    document.body.dataset.view = "call";
+    tabs.addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      document.body.dataset.view = b.dataset.view;
+      for (const x of tabs.children) x.setAttribute("aria-pressed", String(x === b));
+      scrollTo({ top: 0 });
+    });
     const money = n => "$" + Number(n).toFixed(2);
     const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
     const when = ts => new Date(ts * 1000).toLocaleString(undefined,
