@@ -85,12 +85,15 @@ caller --web/phone--> Vapi (Soniox, LLM, Vapi voice, LiveKit turn-taking)
                  GET /    serves app/web/index.html, the web link itself
 ```
 
-One deploy serves both the page and the webhook.
+One deploy serves both the page and the webhook. `/` is the call page; add
+`?k=<VAPI_SECRET>` and a call review renders below it - every offer the agent made, the
+verdict the validator returned, and the transcript. Without the key that section does not
+render at all, because transcripts are conversation content and the URL is public.
 
 ```
 app/policy.py              the whole negotiation. Pure functions, no deps
 app/server.py              Vapi webhooks + serves the page
-app/web/index.html         call page, Vapi Web SDK
+app/web/index.html         call page + gated call review, Vapi Web SDK
 agent/prompt.md            system prompt (source of truth)
 agent/build_assistant.py   prompt.md + tool defs -> assistant.json
 agent/deploy_assistant.py  push to Vapi: POST first time, PATCH after

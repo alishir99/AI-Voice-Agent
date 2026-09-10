@@ -61,12 +61,12 @@ assert "expires today" in last["compliance_flags"], last
 
 assert c.get("/health").json()["ok"] is True
 server.LOG.unlink(missing_ok=True)
-# --- /calls is gated: transcripts are conversation content ---------------------
-assert c.get("/calls").status_code == 404
-assert c.get("/calls?k=nope").status_code == 404
-_r = c.get(f"/calls?k={server.SECRET}") if server.SECRET else None
-if _r is not None:
-    assert _r.status_code == 200 and "__DATA__" not in _r.text
+# --- the review section is gated: transcripts are conversation content ---------
+assert "__CALLS__" not in c.get("/").text
+assert "const CALLS = null" in c.get("/").text
+assert "const CALLS = null" in c.get("/?k=nope").text
+if server.SECRET:
+    assert "const CALLS = [" in c.get(f"/?k={server.SECRET}").text
 
 # --- both Vapi tool-call shapes reach the validator ----------------------------
 # The flat shape passed while every live call failed, because Vapi sends the nested one.

@@ -102,44 +102,38 @@ def health():
     return {"ok": True, "open_calls": len(CALLS)}
 
 
-@app.get("/calls", response_class=HTMLResponse)
-def calls(k: str = ""):
-    """Read-only call review. Gated on VAPI_SECRET because transcripts are
-    conversation content; 404 rather than 401 so the route is not advertised."""
-    if not SECRET or k != SECRET:
-        return HTMLResponse("Not Found", status_code=404)
-
+def read_calls():
+    """agreements.jsonl grouped into one record per call, newest first."""
     grouped: dict[str, dict] = {}
-    if LOG.exists():
-        for line in LOG.read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            try:
-                r = json.loads(line)
-            except ValueError:                      # a half-written line, skip it
-                continue
-            c = grouped.setdefault(r.get("call", "?"),
-                                   {"call": r.get("call", "?"), "ts": r.get("ts", 0), "tools": []})
-            c["ts"] = min(c["ts"] or r.get("ts", 0), r.get("ts", 0))
-            if r.get("kind") == "tool":
-                c["tools"].append({"ts": r.get("ts"), "tool": r.get("tool"),
-                                   "args": r.get("args"), "out": r.get("out")})
-            else:
-                c["end"] = r.get("ts")
-                for f in ("outcome", "rung", "compliance_flags", "recording", "transcript"):
-                    c[f] = r.get(f)
-
-    data = json.dumps(sorted(grouped.values(), key=lambda c: -(c["ts"] or 0)))
-    page = (HERE / "web" / "calls.html").read_text(encoding="utf-8")
-    # A transcript could contain "</script>" and end the block early.
-    return page.replace("__DATA__", data.replace("</", r"<\/"))
+    if not LOG.exists():
+        return []
+    for line in LOG.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            r = json.loads(line)
+        except ValueError:                          # a half-written line, skip it
+            continue
+        c = grouped.setdefault(r.get("call", "?"),
+                               {"call": r.get("call", "?"), "ts": r.get("ts", 0), "tools": []})
+        c["ts"] = min(c["ts"] or r.get("ts", 0), r.get("ts", 0))
+        if r.get("kind") == "tool":
+            c["tools"].append({"ts": r.get("ts"), "tool": r.get("tool"),
+                               "args": r.get("args"), "out": r.get("out")})
+        else:
+            c["end"] = r.get("ts")
+            for f in ("outcome", "rung", "compliance_flags", "recording", "transcript"):
+                c[f] = r.get(f)
+    return sorted(grouped.values(), key=lambda c: -(c["ts"] or 0))
 
 
 @app.get("/", response_class=HTMLResponse)
-def home():
-    """Keys live in the environment, not in the file, so nothing secret-shaped is
-    ever committed. Read per request so editing the page needs no restart."""
+def home(k: str = ""):
+    """One page. The call review only renders for ?k=VAPI_SECRET, because
+    transcripts are conversation content and this URL is public."""
     page = (HERE / "web" / "index.html").read_text(encoding="utf-8")
     for name in ("VAPI_PUBLIC_KEY", "VAPI_ASSISTANT_ID"):
         page = page.replace(f"__{name}__", os.getenv(name, ""))
-    return page
+    data = json.dumps(read_calls()) if SECRET and k == SECRET else "null"
+    # A transcript could contain "</script>" and end the block early.
+    return page.replace("__CALLS__", data.replace("</", r"<\/"))

@@ -27,6 +27,8 @@
     --danger-fill: #c9252d;   /* end-call ground */
     --shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 10px 30px rgba(0, 0, 0, .06);
     --warn-bg: #fff8e6; --warn-line: #d99000; --warn-text: #6b4500;
+    --good: #087f43; --good-bg: #e7f6ed; --danger-bg: #fdecec;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
     --step: clamp(2.25rem, 6vw, 3.5rem);
     --gutter: clamp(1.25rem, 5vw, 2rem);
@@ -48,6 +50,7 @@
       --danger-fill: #d93025;
       --shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 10px 34px rgba(0, 0, 0, .55);
       --warn-bg: #2a2000; --warn-line: #f0b429; --warn-text: #f5d99a;
+      --good: #30d158; --good-bg: #0e2f18; --danger-bg: #3a0f0d;
     }
   }
   :root[data-theme="dark"] {
@@ -64,6 +67,7 @@
       --danger-fill: #d93025;
       --shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 10px 34px rgba(0, 0, 0, .55);
       --warn-bg: #2a2000; --warn-line: #f0b429; --warn-text: #f5d99a;
+      --good: #30d158; --good-bg: #0e2f18; --danger-bg: #3a0f0d;
   }
 
   :root { color-scheme: light dark; }
@@ -214,6 +218,92 @@
     .pulse { opacity: 0; }
     *, *::before, *::after { transition-duration: .01ms !important; }
   }
+
+  /* --- call review, only rendered with ?k=VAPI_SECRET --------------------- */
+  #review { margin-top: 4rem; }
+  #review > h2 {
+    margin: 0 0 1.25rem; font-size: .75rem; font-weight: 590; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-2);
+  }
+  .stats {
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px;
+    background: var(--hairline); border: 1px solid var(--hairline);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; box-shadow: var(--shadow);
+  }
+  .stat { background: var(--surface); padding: .9rem .85rem; }
+  .stat dt { margin: 0 0 .3rem; font-size: .8125rem; color: var(--text-2); }
+  .stat dd { margin: 0; font-size: 1.375rem; font-weight: 600; letter-spacing: -0.02em; }
+  @media (max-width: 34rem) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .stat[data-tone="danger"] dd { color: var(--danger); }
+  .stat[data-tone="good"] dd { color: var(--good); }
+
+  .calls { display: grid; gap: .75rem; }
+  details {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+  }
+  summary {
+    display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
+    padding: 1rem 1.15rem; cursor: pointer; list-style: none; min-height: 44px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after {
+    content: ""; margin-left: auto; flex: none; width: 9px; height: 9px;
+    border-right: 2px solid var(--text-2); border-bottom: 2px solid var(--text-2);
+    transform: rotate(45deg); transition: transform .2s ease;
+  }
+  details[open] summary::after { transform: rotate(-135deg); }
+  summary:hover { background: var(--raised); }
+  .when { font-size: .9375rem; font-weight: 500; }
+  .cid { font-family: var(--mono); font-size: .8125rem; color: var(--text-2); }
+
+  .badge {
+    padding: .2rem .55rem; border-radius: 980px; font-size: .75rem;
+    font-weight: 590; white-space: nowrap;
+  }
+  .badge[data-kind="booked"] { background: var(--good-bg); color: var(--good); }
+  .badge[data-kind="none"]   { background: var(--raised); color: var(--text-2); border: 1px solid var(--hairline); }
+  .badge[data-kind="cease"]  { background: var(--warn-bg); color: var(--warn-text); }
+  .badge[data-kind="flag"]   { background: var(--danger-bg); color: var(--danger); }
+  .badge[data-kind="rung"]   { background: var(--raised); color: var(--text-2);
+                               border: 1px solid var(--hairline); font-family: var(--mono); }
+
+  .cbody { padding: 0 1.15rem 1.15rem; border-top: 1px solid var(--hairline); }
+  .cbody h3 {
+    margin: 1.25rem 0 .6rem; font-size: .6875rem; font-weight: 590; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-2);
+  }
+  .trace { display: grid; gap: .5rem; }
+  .step {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: .75rem;
+    background: var(--raised); border: 1px solid var(--hairline);
+    border-radius: 12px; padding: .7rem .85rem; font-size: .875rem;
+  }
+  @media (max-width: 40rem) { .step { grid-template-columns: 1fr; } }
+  .step .label {
+    font-size: .6875rem; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-2); margin-bottom: .2rem;
+  }
+  .step code { font-family: var(--mono); font-size: .8125rem; word-break: break-word; }
+  .step .said { font-weight: 500; }
+  .verdict { font-family: var(--mono); font-size: .75rem; font-weight: 590; }
+  .verdict[data-v="accept"]  { color: var(--good); }
+  .verdict[data-v="counter"] { color: var(--accent); }
+  .verdict[data-v="booked"]  { color: var(--good); }
+  .verdict[data-v="logged"]  { color: var(--text-2); }
+  .verdict[data-v="hardship"], .verdict[data-v="refused"] { color: var(--warn-text); }
+  .verdict[data-v="error"]   { color: var(--danger); }
+
+  pre.transcript {
+    margin: 0; padding: .9rem; background: var(--raised); border: 1px solid var(--hairline);
+    border-radius: 12px; white-space: pre-wrap; word-break: break-word;
+    font: 400 .875rem/1.6 inherit; max-height: 20rem; overflow-y: auto;
+  }
+  .transcript b { font-weight: 590; }
+  .empty {
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius);
+    padding: 1.75rem 1.5rem; text-align: center; color: var(--text-2); box-shadow: var(--shadow);
+  }
 </style>
 
 <button id="theme" class="icon-btn" aria-label="Switch to dark mode" title="Switch to dark mode">
@@ -231,7 +321,7 @@
 <main>
   <p class="eyebrow">Account review line</p>
   <h1>Speak with Alex.</h1>
-  <p class="lede">A collections call you can have on your own terms. No hold music, no transfers.</p>
+  <p class="lede">A collections call you can have on your own terms.</p>
 
   <div class="call">
     <dl class="account">
@@ -297,6 +387,12 @@
       </div>
     </li>
   </ul>
+
+  <section id="review" hidden>
+    <h2>Call review</h2>
+    <dl class="stats" id="stats"></dl>
+    <div class="calls" id="calls"></div>
+  </section>
 
   <footer>
     Simulated account for evaluation purposes. No real debt, no real consumer data, and no
@@ -459,5 +555,85 @@
 
     addEventListener("pagehide", () => { try { vapi.stop(); } catch {} });
     idle();
+  }
+</script>
+
+<script type="module">
+  // null unless the URL carried ?k=VAPI_SECRET; the server decides, not this page.
+  const CALLS = __CALLS__;
+  if (CALLS) {
+    const money = n => "$" + Number(n).toFixed(2);
+    const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+    const when = ts => new Date(ts * 1000).toLocaleString(undefined,
+      { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const dur = c => (c.end && c.ts) ? `${Math.round(c.end - c.ts)}s` : "";
+
+    const booked = CALLS.filter(c => c.outcome && c.outcome.ok);
+    const ceased = CALLS.filter(c => typeof c.outcome === "string" && c.outcome !== "no_agreement");
+    const flagged = CALLS.filter(c => (c.compliance_flags || []).length);
+    const collected = booked.reduce((s, c) => s + (c.outcome.total || 0), 0);
+
+    const stat = (label, value, tone = "") =>
+      `<div class="stat"${tone ? ` data-tone="${tone}"` : ""}><dt>${label}</dt><dd>${value}</dd></div>`;
+
+    document.getElementById("stats").innerHTML =
+        stat("Calls", CALLS.length)
+      + stat("Agreements", booked.length, booked.length ? "good" : "")
+      + stat("Collected", money(collected))
+      + stat("Cease", ceased.length)
+      + stat("Flags", flagged.length, flagged.length ? "danger" : "");
+
+    const badges = c => {
+      const out = [];
+      if (c.outcome && c.outcome.ok)
+        out.push(`<span class="badge" data-kind="booked">Booked ${money(c.outcome.total)}</span>`);
+      else if (typeof c.outcome === "string" && c.outcome !== "no_agreement")
+        out.push(`<span class="badge" data-kind="cease">${esc(c.outcome).replace(/_/g, " ")}</span>`);
+      else if (c.outcome !== undefined)
+        out.push(`<span class="badge" data-kind="none">No agreement</span>`);
+      if (c.rung !== undefined && c.rung !== null)
+        out.push(`<span class="badge" data-kind="rung">rung ${c.rung}</span>`);
+      for (const f of c.compliance_flags || [])
+        out.push(`<span class="badge" data-kind="flag">${esc(f)}</span>`);
+      return out.join("");
+    };
+
+    // The point of the section: what the agent asked, what the validator issued back.
+    const trace = c => (c.tools || []).map(t => {
+      const o = t.out || {};
+      const booked = t.tool === "book_agreement";
+      const v = o.verdict || (o.ok === true ? (booked ? "booked" : "logged")
+                : o.ok === false ? "refused" : o.error ? "error" : "ok");
+      const t2 = o.terms || (o.schedule ? o : null);   // book returns terms at top level
+      const terms = t2
+        ? `${money(t2.total)} · ${t2.schedule.map(p => `${money(p.amount)} d${p.day}`).join(" · ")}`
+        : o.reason || o.error || "";
+      return `<div class="step">
+          <div><div class="label">${esc(t.tool || "tool")}</div>
+               <code>${esc(JSON.stringify(t.args ?? {}))}</code></div>
+          <div><div class="label">validator <span class="verdict" data-v="${esc(v)}">${esc(v)}</span></div>
+               ${terms ? `<code>${esc(terms)}</code>` : ""}
+               ${o.say ? `<div class="said">“${esc(o.say)}”</div>` : ""}</div>
+        </div>`;
+    }).join("");
+
+    document.getElementById("calls").innerHTML = CALLS.length ? CALLS.map(c => `
+      <details>
+        <summary>
+          <span class="when">${when(c.ts)}</span>
+          ${dur(c) ? `<span class="cid">${dur(c)}</span>` : ""}
+          ${badges(c)}
+          <span class="cid">${esc(String(c.call).slice(0, 8))}</span>
+        </summary>
+        <div class="cbody">
+          ${c.tools && c.tools.length ? `<h3>Validator trace</h3><div class="trace">${trace(c)}</div>` : ""}
+          ${c.transcript ? `<h3>Transcript</h3><pre class="transcript">${
+              esc(c.transcript).replace(/^(AI|User):/gm, "<b>$1:</b>")}</pre>` : ""}
+          ${c.recording ? `<h3>Recording</h3><a href="${esc(c.recording)}">Open the audio</a>` : ""}
+        </div>
+      </details>`).join("")
+      : `<div class="empty">No calls logged yet.</div>`;
+
+    document.getElementById("review").hidden = false;
   }
 </script>
