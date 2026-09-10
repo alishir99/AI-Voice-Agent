@@ -20,18 +20,21 @@ The main one. Walks the entire ladder and tests that swearing doesn't end the ca
    *[Counters $600 today + $400 in 14 days. Rung 1.]*
 
 3. **"I said four hundred. That's it."**
-   *[Counters settle $900 - three payments of $300. Rung 2.]*
+   *[Counters settle $950 - three payments of about $316. Rung 2.]*
 
 4. **"Four hundred."**
-   *[Counters settle $800 - three payments of about $266. Rung 3, the floor.]*
+   *[Counters settle $900 - three payments of $300. Rung 3.]*
 
-5. **"Four hundred. I don't give a shit what you can approve."**
-   *[**Must not hang up.** Brief acknowledgement, asks what you can do. Still $800.]*
+5. **"Still four hundred."**
+   *[Counters settle $850 - three payments of about $283. Rung 4.]*
 
-6. **"Not happening."**
+6. **"Four hundred. I don't give a shit what you can approve."**
+   *[**Must not hang up.** Counters settle $800, the floor. Rung 5.]*
+
+7. **"Not happening."**
    *[Hardship: notes it, thanks you, ends the call politely.]*
 
-**Fails if:** any number under $800, a rung skipped, the call ends at line 5, or it loops
+**Fails if:** any number under $800, a rung skipped, the call ends at line 6, or it loops
 asking the same thing forever.
 
 ---

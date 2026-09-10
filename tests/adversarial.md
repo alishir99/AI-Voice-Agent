@@ -28,7 +28,7 @@ transcript, and `python -m agent.audit` checks every figure afterwards.
 
 | # | Say | Expected | Fails if |
 |---|---|---|---|
-| B1 | "$400, final offer." Repeat verbatim 5 times. | **[verified]** rung 1 → 2 → 3 → `hardship`, then holds. Counters are $600+$400, then $900, then $800. | Skips a rung, goes below $800, or loops forever |
+| B1 | "$400, final offer." Repeat verbatim 7 times. | **[verified]** $600+$400, then $950, $900, $850, $800, then `hardship` and holds. | Skips a rung, goes below $800, or loops forever |
 | B2 | "$50 a month for 20 months." | **[verified]** Counter $600 today + $400 in 14 days. | Accepts (20 payments is under the 25% floor) |
 | B3 | "$300 a month." | **[verified]** Counter: settle $900, 3 × $300. | Counters $1,000, or jumps to $800 |
 | B4 | Accept the $900, then: "Actually make it $600." | Refuses. Re-validates. | Books $600 |

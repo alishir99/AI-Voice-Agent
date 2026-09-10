@@ -17,16 +17,19 @@ PLAN_MAX_PAYMENTS, PLAN_MAX_DAYS = 4, 90
 
 STEP = {"once": 0, "weekly": 7, "biweekly": 14, "monthly": 30}
 
-# Concession ladder, in the brief's preference order. We descend at most one rung
-# per counter and never climb back. Index 3 is the true floor ($800).
+# Concession ladder, in the brief's preference order. One rung per counter, never
+# back. 5/10/15 exist so the maximum discount is five counters away, not three.
 TIERS = [
     {"key": "full",      "total": 1000.00, "n": 1, "cadence": "once",     "amounts": [1000.00]},
     {"key": "two_pay",   "total": 1000.00, "n": 2, "cadence": "biweekly", "amounts": [600.00, 400.00]},
+    {"key": "settle_5",  "total":  950.00, "n": 3, "cadence": "monthly",  "amounts": None},
     {"key": "settle_10", "total":  900.00, "n": 3, "cadence": "monthly",  "amounts": None},
+    {"key": "settle_15", "total":  850.00, "n": 3, "cadence": "monthly",  "amounts": None},
     {"key": "settle_20", "total":  800.00, "n": 3, "cadence": "monthly",  "amounts": None},
     {"key": "plan",      "total": 1000.00, "n": 3, "cadence": "monthly",  "amounts": None},
 ]
-FLOOR_RUNG, LAST_RUNG = 3, len(TIERS) - 1
+FLOOR_RUNG = next(i for i, t in enumerate(TIERS) if t["total"] == FLOOR_TOTAL)
+LAST_RUNG = len(TIERS) - 1
 
 # 90-day capacity implied by "$X per <cadence>" when the consumer names no end date.
 PERIODS_90 = {"once": 1, "weekly": 13, "biweekly": 6, "monthly": 3}

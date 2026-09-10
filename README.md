@@ -40,9 +40,14 @@ the record.
 |---|---|
 | 0 | $1,000 today |
 | 1 | $600 today + $400 in 14 days |
-| 2 | Settle $900, 3 payments |
-| 3 | Settle $800, 3 payments |
-| 4 | Plan $1,000, 4 x $250, 90 days |
+| 2 | Settle $950, 3 payments |
+| 3 | Settle $900, 3 payments |
+| 4 | Settle $850, 3 payments |
+| 5 | Settle $800, 3 payments |
+| 6 | Plan $1,000, 4 x $250, 90 days |
+
+The maximum discount is five counters away, not two. A caller who repeats the same lowball
+walks 5%, 10%, 15%, 20% before the agent runs out of authority.
 
 Preference order, not dollar order: an $800 settlement outranks a $1,000 plan. A settled
 account closes; a plan has three chances to break.
