@@ -117,4 +117,17 @@ assert ok["ok"] and "locked in" in ok["say"], ok
 assert f"{r['terms']['total']:.2f}" in ok["say"], ok
 assert "say" not in book(st, {"total": 400, "schedule": [{"day": 0, "amount": 400}]})
 
+# --- every line that ends a call carries the hangup phrase, nothing else does ----
+from app.policy import BYE
+st = {}
+r = evaluate(st, offer(amount_per_payment=400, num_payments=1, cadence="once"))
+assert BYE not in r["say"], "a counter must not end the call"
+assert BYE in book(st, {"total": r["terms"]["total"], "schedule": r["terms"]["schedule"]})["say"]
+st2 = {}
+for _ in range(9):
+    last = evaluate(st2, offer(amount_per_payment=400, num_payments=1, cadence="once"))
+    if last.get("verdict") == "hardship":
+        break
+assert last["verdict"] == "hardship" and BYE in last["say"], last
+
 print("all policy tests pass")

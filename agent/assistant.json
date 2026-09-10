@@ -231,6 +231,9 @@
     }
   ],
   "endCallFunctionEnabled": true,
+  "endCallPhrases": [
+    "Goodbye now"
+  ],
   "silenceTimeoutSeconds": 22,
   "maxDurationSeconds": 420,
   "backgroundSound": "office"
