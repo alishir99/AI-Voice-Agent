@@ -3,7 +3,7 @@
 Negotiates a $1,000 delinquent account. Every number it speaks comes from a policy service
 outside the model. It cannot invent a discount, and cannot log a deal the validator refused.
 
-- **Talk to it:** https://fed-tmp-improvement-defined.trycloudflare.com/
+- **Talk to it:** https://corafone-agent.alishirzad444.workers.dev
 - **Call review:** append `?k=gGvndHZ1yoIqjvu-dh4NMA` for every call, the offers made, the
   validator's verdict for each, and the transcript
 - **Recording:** _<link>_
