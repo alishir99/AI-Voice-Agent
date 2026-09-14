@@ -14,7 +14,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 LOG = ROOT / "agreements.jsonl"
 SECRET = os.getenv("VAPI_SECRET")            # optional shared secret on the webhooks
-REVIEW_KEY = os.getenv("REVIEW_KEY") or SECRET
+REVIEW_KEY = os.getenv("REVIEW_KEY")         # never falls back to SECRET
 
 # Per-call state, in memory: lost on restart, single replica only.
 CALLS: dict[str, dict] = {}
