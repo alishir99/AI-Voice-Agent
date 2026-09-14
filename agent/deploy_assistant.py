@@ -1,9 +1,5 @@
-"""Push the assistant to Vapi. Creates it the first time, PATCHes it after.
-
-    python -m agent.deploy_assistant
-
-Injects x-vapi-secret here rather than into the tracked assistant.json.
-"""
+"""Push the assistant to Vapi: POST the first time, PATCH after.
+Run: python -m agent.deploy_assistant (adds x-vapi-secret, never stored in assistant.json)."""
 import json
 import os
 import urllib.error
@@ -45,7 +41,7 @@ def main():
         f"https://api.vapi.ai/assistant/{aid}" if aid else "https://api.vapi.ai/assistant",
         data=json.dumps(body).encode(),
         method="PATCH" if aid else "POST",
-        # Cloudflare fronts api.vapi.ai and 1010s the default Python-urllib UA.
+        # Cloudflare in front of api.vapi.ai rejects the default urllib User-Agent (1010).
         headers={"Authorization": f"Bearer {os.environ['VAPI_API_KEY']}",
                  "Content-Type": "application/json",
                  "User-Agent": "curl/8.5.0"},

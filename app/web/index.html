@@ -122,7 +122,7 @@
     padding: 1.5rem;
     display: grid; gap: 1.25rem;
   }
-  /* Label/value rows: the old flex wrap broke apart in a narrow column. */
+  /* Label/value rows. */
   .account {
     display: grid; grid-template-columns: auto 1fr; gap: .35rem 1.25rem; align-items: baseline;
     margin: 0; padding-bottom: 1.25rem; border-bottom: 1px solid var(--hairline);
@@ -239,7 +239,7 @@
     *, *::before, *::after { transition-duration: .01ms !important; }
   }
 
-  /* --- call review, only rendered with ?k=VAPI_SECRET --------------------- */
+  /* --- call review, rendered for /dashboard and /?k=REVIEW_KEY ------------ */
   #review { margin-top: 4rem; }
   #review > h2 {
     margin: 0 0 1.25rem; font-size: .75rem; font-weight: 590; letter-spacing: .08em;
@@ -602,7 +602,7 @@
 </script>
 
 <script type="module">
-  // null unless the URL carried ?k=VAPI_SECRET; the server decides, not this page.
+  // Injected by the server: call records for the review, or null.
   const CALLS = __CALLS__;
   if (CALLS) {
     // Reveal first: a failure below must not leave the section invisible.

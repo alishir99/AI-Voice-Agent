@@ -1,12 +1,5 @@
-"""Place an outbound call, so the agent rings you rather than the other way round.
-
-    python -m agent.place_call +46701234567
-
-Reads VAPI_API_KEY, VAPI_PHONE_NUMBER_ID and VAPI_ASSISTANT_ID from .env.
-
-Free Vapi numbers cannot do this: they are US inbound only. Import a Twilio number
-and enable the destination country under Voice > Settings > Geo permissions.
-"""
+"""Place an outbound call: python -m agent.place_call +46701234567
+Needs VAPI_API_KEY, VAPI_PHONE_NUMBER_ID, VAPI_ASSISTANT_ID and a Twilio number (not a free Vapi one)."""
 import json
 import os
 import re
@@ -26,8 +19,7 @@ def main(argv):
     if len(argv) != 1:
         sys.exit(__doc__)
     to = argv[0].replace(" ", "")
-    # E.164: the single most common reason a call silently never arrives.
-    if not re.fullmatch(r"\+[1-9]\d{7,14}", to):
+    if not re.fullmatch(r"\+[1-9]\d{7,14}", to):              # E.164
         sys.exit(f"{to!r} is not E.164. Use the full international form, e.g. +46701234567")
 
     env = {k: os.getenv(k) for k in ("VAPI_API_KEY", "VAPI_PHONE_NUMBER_ID", "VAPI_ASSISTANT_ID")}
