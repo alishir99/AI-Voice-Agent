@@ -74,6 +74,20 @@ def _num(x, default=0.0):
         return default
 
 
+def _trim(sched):
+    """Cut an overpaying schedule at the balance, keeping its dates.
+    A final payment under 25% folds into the first one."""
+    cents, left = [], round(BALANCE * 100)
+    for p in sched:
+        take = min(round(p["amount"] * 100), left)
+        if take:
+            cents.append([p["day"], take])
+        left -= take
+    if len(cents) > 1 and cents[-1][1] < BALANCE * MIN_PAY_PCT * 100:
+        cents[0][1] += cents.pop()[1]
+    return [{"day": d, "amount": c / 100} for d, c in cents]
+
+
 def normalize(offer):
     """Untrusted input from the LLM -> (total, schedule|None, capacity_90, cadence)."""
     cadence = offer.get("cadence")
@@ -88,7 +102,7 @@ def normalize(offer):
         ]
         total = down + per * n
         if total > BALANCE:                             # never collect more than owed
-            return BALANCE, [{"day": 0, "amount": BALANCE}], BALANCE, cadence
+            return BALANCE, _trim(sched), BALANCE, cadence
         return total, sched, total, cadence
     if per:                                             # open-ended "$X a month"
         cap = down + per * PERIODS_90.get(cadence or "monthly", 3)
@@ -125,7 +139,8 @@ def evaluate(state, offer):
         return {"verdict": "accept", "terms": state["accepted"], "final": True,
                 "say": f"That works. ${total:.2f} total, {len(sched)} payment(s). I'll lock that in."}
 
-    if ok and value(total, sched) >= value(current["total"], current["schedule"]):
+    # The full balance in any legal shape is accepted, whatever our standing offer.
+    if ok and (total >= BALANCE - 0.005 or value(total, sched) >= value(current["total"], current["schedule"])):
         return accept()
 
     if cap < FLOOR_TOTAL - 0.005:
@@ -154,12 +169,19 @@ def evaluate(state, offer):
             "say": phrase(counter)}
 
 
+def _matches(issued, total, sched):
+    """Same total and the same payments, day for day, to the cent."""
+    return (abs(issued["total"] - total) <= 0.02 and len(issued["schedule"]) == len(sched)
+            and all(a["day"] == b["day"] and abs(a["amount"] - b["amount"]) <= 0.01
+                    for a, b in zip(issued["schedule"], sched)))
+
+
 def book(state, terms):
     """Second gate: only legal terms the validator issued on this call can be logged."""
     total, sched = _num(terms.get("total")), terms.get("schedule") or []
     sched = [{"day": int(_num(p.get("day"))), "amount": _num(p.get("amount"))} for p in sched]
     issued = [t for t in (state.get("accepted"), state.get("offered")) if t]
-    if not any(abs(t["total"] - total) <= 0.02 for t in issued):
+    if not any(_matches(t, total, sched) for t in issued):
         return {"ok": False, "reason": "no matching offer issued on this call"}
     if not legal(total, sched):
         return {"ok": False, "reason": "terms violate policy"}

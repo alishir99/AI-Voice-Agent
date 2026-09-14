@@ -82,4 +82,10 @@ for _shape in ("sample_tool_call.json", "sample_tool_call_nested.json"):
     assert _out["terms"]["total"] == 900.0, (_shape, _out)
 server.LOG.unlink(missing_ok=True)
 
+# --- the webhook secret never unlocks the review ---------------------------------
+import importlib
+os.environ.update(VAPI_SECRET="hook-secret", REVIEW_KEY="")
+importlib.reload(server)
+assert "const CALLS = null" in TestClient(server.app).get("/?k=hook-secret").text
+
 print("all server tests pass")
