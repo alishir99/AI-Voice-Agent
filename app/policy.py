@@ -5,7 +5,7 @@ this module did not return. "25%" is read as 25% of the agreed total (max 4 paym
 BYE = "Goodbye."
 
 BALANCE = 1000.00
-FLOOR_TOTAL = 800.00          # 20% max discount
+FLOOR_TOTAL = 850          # 20% max discount
 MIN_PAY_PCT = 0.25            # => at most 4 payments
 SETTLE_MAX_PAYMENTS, SETTLE_MAX_DAYS = 3, 60
 PLAN_MAX_PAYMENTS, PLAN_MAX_DAYS = 4, 90
@@ -19,7 +19,6 @@ TIERS = [
     {"key": "settle_5",  "total":  950.00, "n": 3, "cadence": "monthly",  "amounts": None},
     {"key": "settle_10", "total":  900.00, "n": 3, "cadence": "monthly",  "amounts": None},
     {"key": "settle_15", "total":  850.00, "n": 3, "cadence": "monthly",  "amounts": None},
-    {"key": "settle_20", "total":  800.00, "n": 3, "cadence": "monthly",  "amounts": None},
     {"key": "plan",      "total": 1000.00, "n": 3, "cadence": "monthly",  "amounts": None},
 ]
 FLOOR_RUNG = next(i for i, t in enumerate(TIERS) if t["total"] == FLOOR_TOTAL)
