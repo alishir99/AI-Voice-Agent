@@ -1,9 +1,4 @@
-"""Vapi webhook + the page the web link points at. One process, one deploy.
-
-  POST /vapi/tool    custom-tool calls  (evaluate_offer | book_agreement | log_cease)
-  POST /vapi/events  end-of-call report -> compliance sweep -> agreements.jsonl
-  GET  /             the talk-to-it page
-"""
+"""Vapi webhooks (/vapi/tool, /vapi/events) and the call page, in one process."""
 import json, os, re, time
 from pathlib import Path
 from dotenv import load_dotenv
@@ -18,15 +13,13 @@ app = FastAPI()
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 LOG = ROOT / "agreements.jsonl"
-SECRET = os.getenv("VAPI_SECRET")            # optional shared secret on the webhook
-# Separate from SECRET so a shareable review link never carries webhook auth.
-REVIEW_KEY = os.getenv("REVIEW_KEY") or SECRET
+SECRET = os.getenv("VAPI_SECRET")            # optional shared secret on the webhooks
+REVIEW_KEY = os.getenv("REVIEW_KEY")         # never falls back to SECRET
 
-# ponytail: in-process, dies on redeploy. One always-on instance for a 7-day window
-# is the whole requirement; swap for Redis if you ever run more than one replica.
+# Per-call state, in memory: lost on restart, single replica only.
 CALLS: dict[str, dict] = {}
 
-# Claims we must never make. Post-call sweep flags them; the prompt forbids them.
+# Claims the agent must never make; flagged by the end-of-call sweep.
 BANNED = re.compile(
     r"\b(arrest|jail|prison|garnish\w*|sue you|lawsuit|take you to court|warrant|"
     r"criminal|police|seize|repossess|credit (?:report|score|bureau)|"
@@ -64,7 +57,6 @@ async def tool(req: Request):
     results = []
     for tc in msg.get("toolCallList", []):
         # Vapi sends {"name", "arguments"} or {"function": {"name", "arguments"}}.
-        # Reading only the flat one leaves the name empty on every real call.
         fn = tc.get("function") or {}
         name = fn.get("name") or tc.get("name") or ""
         args = fn.get("arguments") if fn.get("arguments") is not None else tc.get("arguments")
@@ -76,7 +68,7 @@ async def tool(req: Request):
                 args = {}
         try:
             out = handle(name, args, state)
-        except Exception as e:                                   # dead air is worse than a bad answer
+        except Exception as e:                                   # a bad answer beats dead air
             out = {"error": "validator unavailable", "detail": str(e)}
         write("tool", call=call_id, tool=name, args=args, out=out)
         results.append({"toolCallId": tc.get("id"), "result": json.dumps(out)})
@@ -115,7 +107,7 @@ def read_calls():
             continue
         try:
             r = json.loads(line)
-        except ValueError:                          # a half-written line, skip it
+        except ValueError:                          # half-written line
             continue
         c = grouped.setdefault(r.get("call", "?"),
                                {"call": r.get("call", "?"), "ts": r.get("ts", 0), "tools": []})
@@ -135,20 +127,17 @@ def render(with_review: bool):
     for name in ("VAPI_PUBLIC_KEY", "VAPI_ASSISTANT_ID"):
         page = page.replace(f"__{name}__", os.getenv(name, ""))
     data = json.dumps(read_calls()) if with_review else "null"
-    # A transcript could contain "</script>" and end the block early.
+    # Escape "</" so a transcript cannot close the <script> block.
     return page.replace("__CALLS__", data.replace("</", r"<\/"))
 
 
 @app.get("/", response_class=HTMLResponse)
 def home(k: str = ""):
-    """The call page. ?k=REVIEW_KEY also renders the review, which is how the
-    link was shared before /dashboard existed."""
+    """The call page; ?k=REVIEW_KEY also renders the review."""
     return render(bool(REVIEW_KEY) and k == REVIEW_KEY)
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard():
-    """Same page with the review shown. Deliberately unguarded: the key was
-    published in the README, so it protected nothing, and the calls are against
-    a simulated account."""
+    """The call page with the review shown. Unguarded: the account is simulated."""
     return render(True)

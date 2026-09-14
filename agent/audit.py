@@ -1,14 +1,5 @@
-"""Did the agent ever speak a dollar figure the validator did not issue?
-
-That is the whole claim of this project, so it is worth checking mechanically
-rather than trusting a prompt. Run it after any change to the model, the prompt,
-or the tool descriptions:
-
-    python -m agent.audit                    # reads agreements.jsonl
-    python -m agent.audit path/to/log.jsonl
-
-Exit code 1 if any call has an unissued figure, so it works in CI.
-"""
+"""Fail (exit 1) if the agent spoke a dollar figure the validator did not issue.
+Run: python -m agent.audit [path/to/log.jsonl]   (defaults to agreements.jsonl)"""
 import json
 import re
 import sys
@@ -17,14 +8,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BALANCE = 1000.00                       # the one number the agent may state unprompted
 
-# "$266.68", "$800", "266.68 dollars". Bare integers are skipped on purpose:
-# "three payments" and "30 days" are not money, and matching them is all noise.
+# "$266.68", "$800", "266.68 dollars". Bare integers are skipped: "30 days" is not money.
 MONEY = re.compile(r"\$\s?(\d[\d,]*(?:\.\d{1,2})?)|(\d[\d,]*(?:\.\d{1,2})?)\s*dollars\b", re.I)
 AGENT_TURN = re.compile(r"^\s*(?:ai|assistant|bot)\s*:\s*(.*)$", re.I)
 
 
 def numbers_in(obj, out):
-    """Every number the validator put on the wire, at any depth."""
+    """Every number in a tool response, at any depth."""
     if isinstance(obj, bool):
         return out
     if isinstance(obj, (int, float)):
@@ -39,8 +29,7 @@ def numbers_in(obj, out):
 
 
 def spoken_amounts(transcript):
-    """Dollar figures in the agent's own turns. What the consumer says is theirs
-    to say; only what the agent asserts is in scope."""
+    """Dollar figures in the agent's own turns only."""
     found = []
     for line in (transcript or "").splitlines():
         m = AGENT_TURN.match(line)
@@ -68,7 +57,7 @@ def audit(path):
     bad = 0
     for cid, transcript in transcripts.items():
         ok = issued.get(cid, {BALANCE})
-        # A cent of slack: the agent may round $266.68 to $266.67 when reading aloud.
+        # A cent of slack for rounding when read aloud.
         unissued = [a for a in spoken_amounts(transcript)
                     if not any(abs(a - v) <= 0.011 for v in ok)]
         if unissued:

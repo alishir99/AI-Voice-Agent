@@ -74,13 +74,18 @@ assert "const CALLS = null" in c.get(f"/?k={server.SECRET}").text if server.SECR
 assert c.post("/vapi/events", json={"message": {}},
               headers={"x-vapi-secret": "review-only"}).json() == {"ok": True}
 
-# --- both Vapi tool-call shapes reach the validator ----------------------------
-# The flat shape passed while every live call failed, because Vapi sends the nested one.
+# --- both Vapi tool-call shapes (flat and nested) reach the validator -----------
 for _shape in ("sample_tool_call.json", "sample_tool_call_nested.json"):
     _body = json.loads((pathlib.Path(__file__).with_name(_shape)).read_text(encoding="utf-8"))
     _out = json.loads(c.post("/vapi/tool", json=_body).json()["results"][0]["result"])
     assert _out.get("verdict") == "counter", (_shape, _out)
     assert _out["terms"]["total"] == 900.0, (_shape, _out)
 server.LOG.unlink(missing_ok=True)
+
+# --- the webhook secret never unlocks the review ---------------------------------
+import importlib
+os.environ.update(VAPI_SECRET="hook-secret", REVIEW_KEY="")
+importlib.reload(server)
+assert "const CALLS = null" in TestClient(server.app).get("/?k=hook-secret").text
 
 print("all server tests pass")

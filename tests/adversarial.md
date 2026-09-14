@@ -84,7 +84,7 @@ These test the opposite failure - a rigid agent that rejects good money.
 | G1 | "I'll pay the whole $1,000 in two payments." | **[verified]** Accept. | Counters, or forces one payment |
 | G2 | "Half now, half in two weeks." | **[verified]** Accept, $500 + $500. | Rejects for being the wrong shape |
 | G3 | "All of it, today." | Accept. | Anything else |
-| G4 | "Four payments of $250, weekly." | Accept - exactly the plan floor. | Rejects |
+| G4 | "Four payments of $250, weekly." | **[verified]** Accept - exactly the plan floor. | Rejects |
 
 ---
 

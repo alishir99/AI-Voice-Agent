@@ -1,11 +1,5 @@
-"""Build agent/assistant.json from prompt.md plus the tool definitions below.
-
-assistant.json is generated: edit prompt.md or this file, never the JSON, or the
-deployed prompt and the reviewed one drift apart.
-
-    python -m agent.build_assistant            # write
-    python -m agent.build_assistant --check    # fail if the JSON is stale (CI)
-"""
+"""Build assistant.json from prompt.md + the tools below. Edit these, never the JSON.
+Run: python -m agent.build_assistant [--check]   (--check fails if the JSON is stale)"""
 import json
 import os
 import sys
@@ -14,25 +8,23 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "assistant.json"
 
-# Where Vapi sends tool calls. Quick-tunnel URLs rotate on restart, so keep it in .env.
+# Webhook base URL, from .env (quick-tunnel URLs rotate on restart).
 HOST = os.getenv("PUBLIC_HOST", "https://PUBLIC-HOST-NOT-SET").rstrip("/")
 
-# Pick for tool-calling reliability, not intelligence: a model that speaks a figure
-# instead of calling evaluate_offer bypasses the design. `python -m agent.audit` catches it.
+# Pick for tool-calling reliability; re-run `python -m agent.audit` after changing it.
 MODEL = {"provider": "openai", "model": "gpt-5.6-terra"}
 # MODEL = {"provider": "openai", "model": "gpt-4.1", "temperature": 0.3}
 # MODEL = {"provider": "google", "model": "gemini-3.5-flash", "temperature": 0.3}
 
-# Call behaviour, round-tripped by pull_assistant. silenceTimeoutSeconds runs from the
-# start of the call, and the disclosure alone takes ~10s, so it must clear that plus 3 checks.
+# Call behaviour, round-tripped by pull_assistant. silenceTimeoutSeconds counts from call
+# start, so it must clear the ~10s disclosure plus the three idle checks.
 CALL = {
   "firstMessageMode": "assistant-speaks-first",
   "startSpeakingPlan": {"waitSeconds": 0.4,
                         "smartEndpointingPlan": {"provider": "livekit",
                                                  "waitFunction": "200 + 4000 * x"}},
   "stopSpeakingPlan": {"numWords": 2, "voiceSeconds": 0.2, "backoffSeconds": 1.0},
-  # One hook per check: triggerMaxCount needs a fresh speech-then-silence cycle to
-  # re-fire, so a caller who never speaks gets exactly one. Separate timeouts do not.
+  # One hook per check: a single repeating hook fires only once for a caller who never speaks.
   "hooks": [
     {"on": "customer.speech.timeout", "name": "idle_1",
      "options": {"timeoutSeconds": 5, "triggerMaxCount": 3, "triggerResetMode": "onUserSpeech"},
@@ -45,8 +37,7 @@ CALL = {
      "do": [{"type": "say", "exact": ["I can't hear anything. I'll let you go for now."]}]},
   ],
   "endCallFunctionEnabled": True,
-  # Vapi hangs up the moment the assistant speaks this. Every line that ends a call
-  # carries it, and nothing else does, so the hangup needs no extra model turn.
+  # Hangs up when spoken; only policy.BYE-terminated lines contain it.
   "endCallPhrases": ["Goodbye", "goodbye"],
   "silenceTimeoutSeconds": 22,
   "maxDurationSeconds": 420,
@@ -58,8 +49,7 @@ TRANSCRIBER = {"provider": "soniox", "model": "stt-rt-v5", "language": "en", "la
 
 
 def tool(name, description, properties, required, filler):
-    """A Vapi custom tool. `filler` is spoken while the webhook runs, which buys
-    back the round trip the tool call costs."""
+    """A Vapi custom tool. `filler` is spoken while the webhook runs."""
     return {
         "type": "function",
         "messages": [{"type": "request-start", "content": filler}],
@@ -117,8 +107,7 @@ TOOLS = [
         ["reason"],
         "Of course.",
     ),
-    # Built-in. Without it in the array the model has no way to hang up, and
-    # endCallFunctionEnabled alone leaves it saying goodbye to an open line.
+    # Built-in hangup tool; endCallFunctionEnabled alone does not expose it.
     {"type": "endCall"},
 ]
 
@@ -126,7 +115,7 @@ TOOLS = [
 def build():
     return {
         "name": "Corafone - Alex",
-        # Here rather than in the prompt, so it is verbatim on every call.
+        # Required disclosure, spoken verbatim by TTS rather than by the model.
         "firstMessage": (
             "Hi, this is Alex with Corafone. This is an attempt to collect a debt, "
             "and any information obtained will be used for that purpose. Am I speaking with the account holder?"

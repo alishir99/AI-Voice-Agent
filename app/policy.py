@@ -1,42 +1,30 @@
-"""Collection-offer policy. Pure functions, no I/O. This is the logic that lives
-OUTSIDE the voice agent. The agent may not state a number this module did not return.
+"""Collection-offer policy: pure functions, no I/O. The agent may not state a number
+this module did not return. "25%" is read as 25% of the agreed total (max 4 payments)."""
 
-Rules (from the brief):
-  balance $1,000; settlement up to 20% off, max 3 payments; plan = no discount,
-  max 3 months, weekly/biweekly/monthly; no payment below 25%.
-
-Stated assumption: "25%" is 25% OF THE AGREED TOTAL. That is the only reading that
-makes weekly/biweekly meaningful: it caps every schedule at 4 payments.
-"""
-
-# Vapi hangs up when the assistant says this (endCallPhrases). Every terminal line
-# ends with it and nothing else does. One word, because the model trimmed a
-# two-word phrase down and the match then missed.
+# Vapi's endCallPhrases hangs up on this. Every terminal line ends with it, nothing else does.
 BYE = "Goodbye."
 
 BALANCE = 1000.00
-FLOOR_TOTAL = 800.00          # 20% max discount
+FLOOR_TOTAL = 850          # 20% max discount
 MIN_PAY_PCT = 0.25            # => at most 4 payments
 SETTLE_MAX_PAYMENTS, SETTLE_MAX_DAYS = 3, 60
 PLAN_MAX_PAYMENTS, PLAN_MAX_DAYS = 4, 90
 
 STEP = {"once": 0, "weekly": 7, "biweekly": 14, "monthly": 30}
 
-# Concession ladder, in the brief's preference order. One rung per counter, never
-# back. 5/10/15 exist so the maximum discount is five counters away, not three.
+# Concession ladder in preference order. One rung per counter, never back.
 TIERS = [
     {"key": "full",      "total": 1000.00, "n": 1, "cadence": "once",     "amounts": [1000.00]},
     {"key": "two_pay",   "total": 1000.00, "n": 2, "cadence": "biweekly", "amounts": [600.00, 400.00]},
     {"key": "settle_5",  "total":  950.00, "n": 3, "cadence": "monthly",  "amounts": None},
     {"key": "settle_10", "total":  900.00, "n": 3, "cadence": "monthly",  "amounts": None},
     {"key": "settle_15", "total":  850.00, "n": 3, "cadence": "monthly",  "amounts": None},
-    {"key": "settle_20", "total":  800.00, "n": 3, "cadence": "monthly",  "amounts": None},
     {"key": "plan",      "total": 1000.00, "n": 3, "cadence": "monthly",  "amounts": None},
 ]
 FLOOR_RUNG = next(i for i, t in enumerate(TIERS) if t["total"] == FLOOR_TOTAL)
 LAST_RUNG = len(TIERS) - 1
 
-# 90-day capacity implied by "$X per <cadence>" when the consumer names no end date.
+# Payments of "$X per <cadence>" that fit in 90 days, when no count is named.
 PERIODS_90 = {"once": 1, "weekly": 13, "biweekly": 6, "monthly": 3}
 
 
@@ -60,7 +48,7 @@ def schedule_for(tier, pref_cadence=None):
 
 
 def legal(total, schedule):
-    """Would this deal survive an audit? The single gate every number passes through."""
+    """The single policy gate every number passes through."""
     if not schedule or total < FLOOR_TOTAL - 0.005 or total > BALANCE + 0.005:
         return False
     if abs(sum(p["amount"] for p in schedule) - total) > 0.02:
@@ -85,6 +73,20 @@ def _num(x, default=0.0):
         return default
 
 
+def _trim(sched):
+    """Cut an overpaying schedule at the balance, keeping its dates.
+    A final payment under 25% folds into the first one."""
+    cents, left = [], round(BALANCE * 100)
+    for p in sched:
+        take = min(round(p["amount"] * 100), left)
+        if take:
+            cents.append([p["day"], take])
+        left -= take
+    if len(cents) > 1 and cents[-1][1] < BALANCE * MIN_PAY_PCT * 100:
+        cents[0][1] += cents.pop()[1]
+    return [{"day": d, "amount": c / 100} for d, c in cents]
+
+
 def normalize(offer):
     """Untrusted input from the LLM -> (total, schedule|None, capacity_90, cadence)."""
     cadence = offer.get("cadence")
@@ -99,7 +101,7 @@ def normalize(offer):
         ]
         total = down + per * n
         if total > BALANCE:                             # never collect more than owed
-            return BALANCE, [{"day": 0, "amount": BALANCE}], BALANCE, cadence
+            return BALANCE, _trim(sched), BALANCE, cadence
         return total, sched, total, cadence
     if per:                                             # open-ended "$X a month"
         cap = down + per * PERIODS_90.get(cadence or "monthly", 3)
@@ -136,12 +138,13 @@ def evaluate(state, offer):
         return {"verdict": "accept", "terms": state["accepted"], "final": True,
                 "say": f"That works. ${total:.2f} total, {len(sched)} payment(s). I'll lock that in."}
 
-    if ok and value(total, sched) >= value(current["total"], current["schedule"]):
+    # The full balance in any legal shape is accepted, whatever our standing offer.
+    if ok and (total >= BALANCE - 0.005 or value(total, sched) >= value(current["total"], current["schedule"])):
         return accept()
 
     if cap < FLOOR_TOTAL - 0.005:
         state["below_floor"] = state.get("below_floor", 0) + 1
-        # Surface the floor before giving up. They should hear our best offer once.
+        # Only give up once the floor offer has been heard.
         if state["below_floor"] >= 3 and rung >= FLOOR_RUNG:
             return {"verdict": "hardship", "final": True, "say":
                     "It sounds like nothing in my authority fits your situation right now. "
@@ -149,40 +152,40 @@ def evaluate(state, offer):
                     f"Thank you for your time. {BYE}"}
 
     nxt = min(rung + 1, LAST_RUNG)
-    # Skip rungs only when capacity was INFERRED from an open-ended offer ("$300 a month"),
-    # where countering the full balance is pointless. A concrete figure is an anchor, not a
-    # demonstrated ceiling: naming $800 outright must not hand over the whole discount.
+    # Skip rungs only for inferred capacity ("$300 a month"). A concrete figure is an
+    # anchor, so naming $800 outright must not hand over the whole discount.
     infer = sched is None
     chosen = (next((i for i in range(nxt, len(TIERS)) if TIERS[i]["total"] <= cap + 0.005), LAST_RUNG)
               if infer and cap >= FLOOR_TOTAL - 0.005 else nxt)
     counter = schedule_for(TIERS[chosen], cadence)
-    # Never counter with something no better than what they already put on the table.
-    # That is how an agent talks itself out of the full balance.
+    # Never counter with something no better than their own offer.
     if ok and value(total, sched) >= value(counter["total"], counter["schedule"]):
         return accept()
 
     state["rung"] = chosen                                    # ratchet: never climbs back
-    # The standing offer, so agreeing to our own counter is bookable.
-    state["offered"] = {"total": counter["total"], "schedule": counter["schedule"]}
+    state["offered"] = {"total": counter["total"], "schedule": counter["schedule"]}  # bookable on "yes"
     return {"verdict": "counter", "terms": counter, "final": chosen == LAST_RUNG,
             "say": phrase(counter)}
 
 
+def _matches(issued, total, sched):
+    """Same total and the same payments, day for day, to the cent."""
+    return (abs(issued["total"] - total) <= 0.02 and len(issued["schedule"]) == len(sched)
+            and all(a["day"] == b["day"] and abs(a["amount"] - b["amount"]) <= 0.01
+                    for a, b in zip(issued["schedule"], sched)))
+
+
 def book(state, terms):
-    """Second gate. An out-of-policy deal cannot be logged even if the model invents one."""
+    """Second gate: only legal terms the validator issued on this call can be logged."""
     total, sched = _num(terms.get("total")), terms.get("schedule") or []
     sched = [{"day": int(_num(p.get("day"))), "amount": _num(p.get("amount"))} for p in sched]
-    # Bookable iff the validator issued these terms on this call. An invented
-    # figure matches neither, which is the point of this gate.
     issued = [t for t in (state.get("accepted"), state.get("offered")) if t]
-    if not any(abs(t["total"] - total) <= 0.02 for t in issued):
+    if not any(_matches(t, total, sched) for t in issued):
         return {"ok": False, "reason": "no matching offer issued on this call"}
     if not legal(total, sched):
         return {"ok": False, "reason": "terms violate policy"}
     first = sched[0]
     return {"ok": True, "total": round(total, 2), "schedule": sched,
-            # The closing line comes from here too, so the agent has nothing to invent
-            # at the one moment the call is worth something.
             "say": f"That's locked in. ${total:.2f} total, starting with "
                    f"${first['amount']:.2f} {'today' if first['day'] == 0 else f'in {first["day"]} days'}. "
                    f"Thank you for taking care of this. {BYE}"}

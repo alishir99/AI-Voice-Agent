@@ -34,7 +34,7 @@ for _ in range(8):
     if r["verdict"] == "hardship":
         break
 assert seen == sorted(seen), seen
-assert max(seen) >= 3, seen                              # the $800 floor was shown before giving up
+assert max(seen) >= 3, seen                              # conceded several rungs before giving up
 assert all(b - a <= 1 for a, b in zip(seen, seen[1:])), seen
 assert r["verdict"] == "hardship", r
 
@@ -145,5 +145,25 @@ assert r["verdict"] == "counter" and r["terms"]["total"] == 900.0, r
 for o in (offer(amount_per_payment=1000, num_payments=1, cadence="once"),
           offer(amount_per_payment=500, num_payments=2, cadence="biweekly")):
     assert evaluate({}, o)["verdict"] == "accept", o
+
+# --- the full balance in any legal shape is accepted on the first turn ------------
+for o in (offer(amount_per_payment=500, num_payments=2, cadence="monthly"),
+          offer(amount_per_payment=250, num_payments=4, cadence="weekly")):
+    r = evaluate({}, o)
+    assert r["verdict"] == "accept" and r["terms"]["total"] == BALANCE, (o, r)
+
+# --- booking must match the issued schedule, not just the total ------------------
+st = {}
+r = evaluate(st, offer(amount_per_payment=300, cadence="monthly"))       # counter: 3 x $300
+assert book(st, {"total": 900, "schedule": [{"day": 0, "amount": 900}]})["ok"] is False
+assert book(st, r["terms"])["ok"] is True
+
+# --- an overpayment keeps the caller's dates, cut at the balance -----------------
+r = evaluate({}, offer(amount_per_payment=500, num_payments=3, cadence="monthly"))
+assert r["verdict"] == "accept" and r["terms"]["schedule"] == [
+    {"day": 0, "amount": 500.0}, {"day": 30, "amount": 500.0}], r
+r = evaluate({}, offer(amount_per_payment=400, num_payments=3, cadence="monthly"))
+assert r["verdict"] == "accept" and r["terms"]["schedule"] == [              # $200 tail folds in
+    {"day": 0, "amount": 600.0}, {"day": 30, "amount": 400.0}], r
 
 print("all policy tests pass")

@@ -1,16 +1,5 @@
-/* Reverse proxy so the browser only ever talks to *.workers.dev.
- *
- * Why: the app is served over a Cloudflare quick tunnel, and corporate DNS
- * filters block the whole trycloudflare.com suffix, so reviewers got
- * NXDOMAIN. Cloudflare's edge is not behind that filter, so it can reach the
- * tunnel and hand the answer back over a hostname nobody blocks.
- *
- * Vapi's webhooks still go straight to the tunnel; Vapi is not DNS-filtered,
- * and one less hop on the tool round trip is worth having.
- *
- * ORIGIN is set in the dashboard, not here, so the tunnel address is not
- * baked into the repository and can be changed without a redeploy.
- */
+/* Reverse proxy so browsers reach the app on *.workers.dev, which DNS filters
+ * that block trycloudflare.com allow. Set ORIGIN in the dashboard. */
 const DEFAULT_ORIGIN = "https://fed-tmp-improvement-defined.trycloudflare.com";
 
 export default {
@@ -20,8 +9,7 @@ export default {
     const target = new URL(incoming.pathname + incoming.search, origin);
 
     const headers = new Headers(request.headers);
-    // The origin's certificate was issued for its own name, not ours.
-    headers.set("host", new URL(origin).host);
+    headers.set("host", new URL(origin).host);    // origin's certificate is for its own name
     headers.set("x-forwarded-proto", "https");
     headers.set("x-forwarded-host", incoming.host);
     headers.delete("accept-encoding");
