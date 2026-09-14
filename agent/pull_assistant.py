@@ -1,9 +1,5 @@
-"""Pull the live provider stack from Vapi back into build_assistant.py.
-
-    python -m agent.pull_assistant [--write [--force] | --show]
-
-MODEL, VOICE, TRANSCRIBER and CALL come back; prompt, tools and webhook URLs stay one-way.
-"""
+"""Pull MODEL, VOICE, TRANSCRIBER and CALL from the live assistant into build_assistant.py.
+Run: python -m agent.pull_assistant [--write [--force] | --show]   (prompt/tools stay one-way)"""
 import json
 import re
 import subprocess
@@ -15,7 +11,6 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "build_assistant.py"
 FIELDS = {"MODEL": "model", "VOICE": "voice", "TRANSCRIBER": "transcriber"}
-# Everything in CALL comes back too, so dashboard tuning is not silently reverted.
 CALL_KEYS = ["firstMessageMode", "startSpeakingPlan", "stopSpeakingPlan", "hooks",
              "endCallPhrases",
              "endCallFunctionEnabled", "silenceTimeoutSeconds", "maxDurationSeconds",
@@ -37,7 +32,7 @@ def fetch(env):
     req = urllib.request.Request(
         f"https://api.vapi.ai/assistant/{env['VAPI_ASSISTANT_ID']}",
         headers={"Authorization": f"Bearer {env['VAPI_API_KEY']}",
-                 "User-Agent": "curl/8.5.0"})          # Cloudflare 1010s the urllib agent
+                 "User-Agent": "curl/8.5.0"})          # Cloudflare rejects the urllib UA
     try:
         return json.load(urllib.request.urlopen(req))
     except urllib.error.HTTPError as e:
@@ -45,8 +40,7 @@ def fetch(env):
 
 
 def show(live, env):
-    """What is actually answering calls right now. Printed after a sync so a wrong
-    model is visible immediately rather than on the next call."""
+    """Print what is live at Vapi right now."""
     m = live.get("model") or {}
     v = live.get("voice") or {}
     t = live.get("transcriber") or {}
@@ -117,7 +111,7 @@ def main():
     for old, new in changed:
         print(f"- {old}\n+ {new}")
 
-    # A published assistant that lost its headers rejects every webhook, silently.
+    # A dashboard publish drops the headers, and every webhook is then rejected.
     if not (live.get("server") or {}).get("headers") and env.get("VAPI_SECRET"):
         print("\nwarning: the live assistant has no x-vapi-secret header, so webhooks are\n"
               "being rejected right now. python -m agent.deploy_assistant restores it.")
@@ -126,8 +120,7 @@ def main():
         print("\nrun again with --write to apply, then: python -m agent.deploy_assistant")
         return
 
-    # Overwriting local edits with the live version silently reverts anything just
-    # pulled or hand-edited but not yet deployed.
+    # Don't overwrite local edits that are not yet deployed.
     if "--force" not in sys.argv and dirty():
         raise SystemExit(
             "\nbuild_assistant.py has uncommitted changes and --write would discard them.\n"

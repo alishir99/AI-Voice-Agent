@@ -34,7 +34,7 @@ for _ in range(8):
     if r["verdict"] == "hardship":
         break
 assert seen == sorted(seen), seen
-assert max(seen) >= 3, seen                              # the $800 floor was shown before giving up
+assert max(seen) >= 3, seen                              # conceded several rungs before giving up
 assert all(b - a <= 1 for a, b in zip(seen, seen[1:])), seen
 assert r["verdict"] == "hardship", r
 
