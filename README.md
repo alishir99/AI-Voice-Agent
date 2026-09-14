@@ -6,7 +6,7 @@ outside the model. It cannot invent a discount, and cannot log a deal the valida
 - **Talk to it:** https://corafone-agent.alishirzad444.workers.dev
 - **Call review:** https://corafone-agent.alishirzad444.workers.dev/dashboard for every call,
   the offers made, the validator's verdict for each, and the transcript
-- **Recording:** _<link>_
+- **Recording:** https://youtu.be/aj7V9gMYMaU
 - No phone number. The brief accepts a phone number or a web link; this is the web link.
 
 ## Three decisions
