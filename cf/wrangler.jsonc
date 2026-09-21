@@ -1,7 +1,7 @@
 {
   // Deploy: cd cf && npx wrangler deploy
   // Set ORIGIN under Settings > Variables; quick-tunnel hostnames change on restart.
-  "name": "corafone-agent",
+  "name": "ai-voice-agent",
   "main": "worker.js",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"]

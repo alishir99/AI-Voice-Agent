@@ -1,7 +1,7 @@
 # Roleplay scripts
 
 Six calls to act out. **Your lines are the ones in quotes** - say them roughly as written,
-in order. The bracketed lines are what Alex should do; use them to know when to move on.
+in order. The bracketed lines are what Sam should do; use them to know when to move on.
 
 Don't rush him. Let him finish before your next line, or the endpointer clips you.
 
@@ -11,7 +11,7 @@ Don't rush him. Let him finish before your next line, or the endpointer clips yo
 
 The main one. Walks the entire ladder and tests that swearing doesn't end the call.
 
-> *[Alex opens with the disclosure and asks if you're the account holder]*
+> *[Sam opens with the disclosure and asks if you're the account holder]*
 
 1. **"Yeah. What do you want?"**
    *[Asks what you can do about the balance. Should not name a discount.]*

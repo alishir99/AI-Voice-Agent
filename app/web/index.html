@@ -1,7 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Corafone</title>
+<title>AI Voice Agent</title>
 
 <script>
   // Before first paint, so a chosen theme never flashes the other one.
@@ -361,7 +361,7 @@
     <button type="button" data-view="review" aria-pressed="false">Review</button>
   </div>
   <p class="eyebrow">Account review line</p>
-  <h1>Speak with Alex.</h1>
+  <h1>Speak with Sam.</h1>
   <p class="lede">A collections call you can have on your own terms.</p>
 
   <div class="call">
@@ -381,7 +381,7 @@
             <path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/>
             <path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v3"/>
           </svg>
-          <span id="call-label">Call Alex</span>
+          <span id="call-label">Call Sam</span>
         </button>
       </span>
       <button class="icon-btn" id="mute" aria-pressed="false" aria-label="Mute microphone" hidden>
@@ -404,7 +404,7 @@
       </svg>
       <div>
         <b>Every figure is issued by a policy service</b>
-        <span>Not by the model. Alex relays approved terms and cannot invent one.</span>
+        <span>Not by the model. Sam relays approved terms and cannot invent one.</span>
       </div>
     </li>
     <li>
@@ -508,7 +508,7 @@
   }
 
   if (!PUBLIC_KEY || !ASSISTANT_ID) {
-    setState("dead", "Call Alex");
+    setState("dead", "Call Sam");
     document.querySelector(".controls").insertAdjacentHTML("beforebegin",
       '<p class="notice"><strong>Not wired up yet.</strong> Set <code>VAPI_PUBLIC_KEY</code> and ' +
       '<code>VAPI_ASSISTANT_ID</code> in <code>.env</code>, then restart the server.</p>');
@@ -544,7 +544,7 @@
       pulse.style.removeProperty("--glow");
       mute.setAttribute("aria-pressed", "false");
       mute.setAttribute("aria-label", "Mute microphone");
-      setState("idle", "Call Alex");
+      setState("idle", "Call Sam");
     };
 
     btn.addEventListener("click", async () => {
@@ -584,7 +584,7 @@
       live();
       ticker = setInterval(live, 1000);
     });
-    vapi.on("speech-start", () => { if (!vapi.isMuted()) { note = "Alex is speaking"; live(); } });
+    vapi.on("speech-start", () => { if (!vapi.isMuted()) { note = "Sam is speaking"; live(); } });
     vapi.on("speech-end",   () => { if (!vapi.isMuted()) { note = "Listening";        live(); } });
     vapi.on("volume-level", v => pulse.style.setProperty("--glow", Math.min(Math.max(v, 0), 1) * 0.6));
     vapi.on("call-end", () => { idle(); say("Call ended."); });

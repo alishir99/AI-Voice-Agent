@@ -114,10 +114,10 @@ TOOLS = [
 
 def build():
     return {
-        "name": "Corafone - Alex",
+        "name": "AI Voice Agent",
         # Required disclosure, spoken verbatim by TTS rather than by the model.
         "firstMessage": (
-            "Hi, this is Alex with Corafone. This is an attempt to collect a debt, "
+            "Hi, this is Sam, calling about an account placed with us by Northline Bank. This is an attempt to collect a debt, "
             "and any information obtained will be used for that purpose. Am I speaking with the account holder?"
         ),
         "model": {
